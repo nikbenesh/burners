@@ -1,0 +1,5 @@
+forge-std/=lib/forge-std/src/
+@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
+@symbiotic/collateral/contracts/=lib/collateral/src/contracts/
+@symbiotic/collateral/interfaces/=lib/collateral/src/interfaces/
+@symbiotic/collateral/mocks/=lib/collateral/test/mocks/
