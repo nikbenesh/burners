@@ -1,66 +1,52 @@
-## Foundry
+**[Symbiotic Protocol](https://symbiotic.fi) is an extremely flexible and permissionless shared security system.**
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+This repository contains Default Burners contracts.
 
-Foundry consists of:
+## Burners
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+The implementations can be found [here](./src/contracts/burners).
 
-## Documentation
+## Technical Documentation
 
-https://book.getfoundry.sh/
+Technical documentation can be found [here](./specs).
+
+## Security
+
+Security audits can be found [here](./audits).
 
 ## Usage
+
+### Env
+
+Create `.env` file using a template:
+
+```
+ETH_RPC_URL=
+ETHERSCAN_API_KEY=
+```
+
+\* ETHERSCAN_API_KEY is optional.
 
 ### Build
 
 ```shell
-$ forge build
+forge build
 ```
 
 ### Test
 
 ```shell
-$ forge test
+forge test
 ```
 
 ### Format
 
 ```shell
-$ forge fmt
+forge fmt
 ```
 
 ### Gas Snapshots
 
 ```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+forge snapshot
 ```
