@@ -47,12 +47,12 @@ interface IDC_wstETH_Burner {
     function LIDO_WITHDRAWAL_QUEUE() external view returns (address);
 
     /**
-     * @notice Get a minimum amount of stETH that can be withdrawn.
+     * @notice Get a minimum amount of stETH that can be withdrawn at a request.
      */
     function MIN_STETH_WITHDRAWAL_AMOUNT() external view returns (uint256);
 
     /**
-     * @notice Get a maximum amount of stETH that can be withdrawn.
+     * @notice Get a maximum amount of stETH that can be withdrawn at a request.
      */
     function MAX_STETH_WITHDRAWAL_AMOUNT() external view returns (uint256);
 

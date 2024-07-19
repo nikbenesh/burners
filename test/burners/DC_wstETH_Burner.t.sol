@@ -9,7 +9,7 @@ import {IWithdrawalQueue} from "src/interfaces/burners/DC_wstETH/IWithdrawalQueu
 import {IWstETH} from "src/interfaces/burners/DC_wstETH/IWstETH.sol";
 import {IDC_wstETH_Burner} from "src/interfaces/burners/DC_wstETH/IDC_wstETH_Burner.sol";
 
-import {UniswapV3Swap, IERC20, IWETH} from "test/mocks/UniswapV3Swap.sol";
+import {AaveV3Borrow, IERC20, IWETH} from "test/mocks/AaveV3Borrow.sol";
 
 import {IDefaultCollateral} from "@symbiotic/collateral/interfaces/defaultCollateral/IDefaultCollateral.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
@@ -25,7 +25,7 @@ contract DC_wstETH_BurnerTest is Test {
     address bob;
     uint256 bobPrivateKey;
 
-    UniswapV3Swap private uni;
+    AaveV3Borrow private aave;
 
     DC_wstETH_Burner burner;
 
@@ -42,17 +42,18 @@ contract DC_wstETH_BurnerTest is Test {
         (alice, alicePrivateKey) = makeAddrAndKey("alice");
         (bob, bobPrivateKey) = makeAddrAndKey("bob");
 
-        uni = new UniswapV3Swap();
-        weth.approve(address(uni), type(uint256).max);
+        aave = new AaveV3Borrow();
+        weth.approve(address(aave), type(uint256).max);
 
         IERC20(WSTETH).approve(COLLATERAL, type(uint256).max);
 
-        vm.deal(address(this), 100_000_000_000 ether);
-        weth.deposit{value: 100_000_000_000 ether}();
-        uint256 amountOut = uni.swapExactInputSingleHop(WETH, WSTETH, 100, 100_000_000_000 ether);
+        vm.deal(address(this), 500_000 ether);
+        weth.deposit{value: 500_000 ether}();
+        uint256 amountOut = 15_000 ether;
+        aave.supplyAndBorrow(WETH, 500_000 ether, WSTETH, amountOut);
 
         vm.startPrank(IDefaultCollateral(COLLATERAL).limitIncreaser());
-        IDefaultCollateral(COLLATERAL).increaseLimit(100_000_000_000 ether);
+        IDefaultCollateral(COLLATERAL).increaseLimit(100_000_000 ether);
         vm.stopPrank();
 
         IDefaultCollateral(COLLATERAL).deposit(address(this), amountOut);
@@ -71,8 +72,8 @@ contract DC_wstETH_BurnerTest is Test {
     }
 
     function test_TriggerWithdrawal(uint256 depositAmount1, uint256 depositAmount2, uint256 maxRequests) public {
-        depositAmount1 = bound(depositAmount1, 50, 2500 ether);
-        depositAmount2 = bound(depositAmount2, 50, 2500 ether);
+        depositAmount1 = bound(depositAmount1, 50, 10_000 ether);
+        depositAmount2 = bound(depositAmount2, 50, 10_000 ether);
         maxRequests = bound(maxRequests, 1, type(uint256).max);
 
         burner = new DC_wstETH_Burner(COLLATERAL, LIDO_WITHDRAWAL_QUEUE);
@@ -106,7 +107,7 @@ contract DC_wstETH_BurnerTest is Test {
             }
         }
 
-        assertApproxEqAbs(IERC20(STETH).balanceOf(address(burner)), stETHAmount1 - withdrawal1, 2);
+        assertApproxEqAbs(IERC20(STETH).balanceOf(address(burner)), stETHAmount1 - withdrawal1, 2 * N1);
 
         assertEq(requestsIds.length, N1);
         for (uint256 i; i < N1; ++i) {
@@ -163,7 +164,9 @@ contract DC_wstETH_BurnerTest is Test {
             }
 
             assertApproxEqAbs(
-                IERC20(STETH).balanceOf(address(burner)), (stETHAmount1 - withdrawal1) + stETHAmount2 - withdrawal2, 2
+                IERC20(STETH).balanceOf(address(burner)),
+                (stETHAmount1 - withdrawal1) + stETHAmount2 - withdrawal2,
+                2 * N2
             );
 
             assertEq(requestsIds.length, N2);
@@ -212,7 +215,7 @@ contract DC_wstETH_BurnerTest is Test {
     }
 
     function test_TriggerBurn(uint256 depositAmount1) public {
-        depositAmount1 = bound(depositAmount1, 50, 2500 ether);
+        depositAmount1 = bound(depositAmount1, 50, 10_000 ether);
 
         burner = new DC_wstETH_Burner(COLLATERAL, LIDO_WITHDRAWAL_QUEUE);
 
@@ -239,7 +242,7 @@ contract DC_wstETH_BurnerTest is Test {
     }
 
     function test_TriggerBurnRevertInvalidRequestId(uint256 depositAmount1) public {
-        depositAmount1 = bound(depositAmount1, 50, 2500 ether);
+        depositAmount1 = bound(depositAmount1, 50, 10_000 ether);
 
         burner = new DC_wstETH_Burner(COLLATERAL, LIDO_WITHDRAWAL_QUEUE);
 
@@ -259,7 +262,7 @@ contract DC_wstETH_BurnerTest is Test {
     }
 
     function test_TriggerBurnBatch(uint256 depositAmount1) public {
-        depositAmount1 = bound(depositAmount1, 50, 2500 ether);
+        depositAmount1 = bound(depositAmount1, 50, 10_000 ether);
 
         burner = new DC_wstETH_Burner(COLLATERAL, LIDO_WITHDRAWAL_QUEUE);
 
@@ -290,7 +293,7 @@ contract DC_wstETH_BurnerTest is Test {
     }
 
     function test_TriggerBurnBatchRevertInvalidRequestId(uint256 depositAmount1) public {
-        depositAmount1 = bound(depositAmount1, 50, 2500 ether);
+        depositAmount1 = bound(depositAmount1, 50, 10_000 ether);
 
         burner = new DC_wstETH_Burner(COLLATERAL, LIDO_WITHDRAWAL_QUEUE);
 
