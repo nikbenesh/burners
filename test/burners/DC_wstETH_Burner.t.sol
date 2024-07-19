@@ -35,8 +35,8 @@ contract DC_wstETH_BurnerTest is Test {
     address public constant WSTETH = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
 
     function setUp() public {
-        // uint256 mainnetFork = vm.createFork(vm.rpcUrl("mainnet"));
-        // vm.selectFork(mainnetFork);
+        uint256 mainnetFork = vm.createFork(vm.rpcUrl("mainnet"));
+        vm.selectFork(mainnetFork);
 
         owner = address(this);
         (alice, alicePrivateKey) = makeAddrAndKey("alice");

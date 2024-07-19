@@ -34,8 +34,8 @@ contract DC_rETH_BurnerTest is Test {
     address public constant RETH = 0xae78736Cd615f374D3085123A210448E74Fc6393;
 
     function setUp() public {
-        // uint256 mainnetFork = vm.createFork(vm.rpcUrl("mainnet"));
-        // vm.selectFork(mainnetFork);
+        uint256 mainnetFork = vm.createFork(vm.rpcUrl("mainnet"));
+        vm.selectFork(mainnetFork);
 
         owner = address(this);
         (alice, alicePrivateKey) = makeAddrAndKey("alice");
