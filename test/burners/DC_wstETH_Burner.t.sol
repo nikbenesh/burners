@@ -61,6 +61,7 @@ contract DC_wstETH_BurnerTest is Test {
 
     function test_Create() public {
         burner = new DC_wstETH_Burner(COLLATERAL, LIDO_WITHDRAWAL_QUEUE);
+        vm.deal(address(burner), 0);
 
         assertEq(burner.COLLATERAL(), COLLATERAL);
         assertEq(burner.ASSET(), WSTETH);
@@ -77,6 +78,7 @@ contract DC_wstETH_BurnerTest is Test {
         maxRequests = bound(maxRequests, 1, type(uint256).max);
 
         burner = new DC_wstETH_Burner(COLLATERAL, LIDO_WITHDRAWAL_QUEUE);
+        vm.deal(address(burner), 0);
 
         uint256 initCollateralBalance = IERC20(COLLATERAL).balanceOf(address(this));
 
@@ -204,6 +206,7 @@ contract DC_wstETH_BurnerTest is Test {
         vm.assume(stETHAmount1 < 100);
 
         burner = new DC_wstETH_Burner(COLLATERAL, LIDO_WITHDRAWAL_QUEUE);
+        vm.deal(address(burner), 0);
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
@@ -218,6 +221,7 @@ contract DC_wstETH_BurnerTest is Test {
         depositAmount1 = bound(depositAmount1, 50, 10_000 ether);
 
         burner = new DC_wstETH_Burner(COLLATERAL, LIDO_WITHDRAWAL_QUEUE);
+        vm.deal(address(burner), 0);
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
@@ -245,6 +249,7 @@ contract DC_wstETH_BurnerTest is Test {
         depositAmount1 = bound(depositAmount1, 50, 10_000 ether);
 
         burner = new DC_wstETH_Burner(COLLATERAL, LIDO_WITHDRAWAL_QUEUE);
+        vm.deal(address(burner), 0);
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
@@ -265,6 +270,7 @@ contract DC_wstETH_BurnerTest is Test {
         depositAmount1 = bound(depositAmount1, 50, 10_000 ether);
 
         burner = new DC_wstETH_Burner(COLLATERAL, LIDO_WITHDRAWAL_QUEUE);
+        vm.deal(address(burner), 0);
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
@@ -296,6 +302,7 @@ contract DC_wstETH_BurnerTest is Test {
         depositAmount1 = bound(depositAmount1, 50, 10_000 ether);
 
         burner = new DC_wstETH_Burner(COLLATERAL, LIDO_WITHDRAWAL_QUEUE);
+        vm.deal(address(burner), 0);
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 

@@ -66,6 +66,7 @@ contract DC_rETH_BurnerTest is Test {
 
     function test_Create() public {
         burner = new DC_rETH_Burner(COLLATERAL);
+        vm.deal(address(burner), 0);
 
         assertEq(burner.COLLATERAL(), COLLATERAL);
         assertEq(burner.ASSET(), RETH);
@@ -77,6 +78,7 @@ contract DC_rETH_BurnerTest is Test {
         burnAmount2 = bound(burnAmount2, 1, depositAmount1);
 
         burner = new DC_rETH_Burner(COLLATERAL);
+        vm.deal(address(burner), 0);
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
@@ -103,6 +105,7 @@ contract DC_rETH_BurnerTest is Test {
         uint256 burnAmount1 = 0;
 
         burner = new DC_rETH_Burner(COLLATERAL);
+        vm.deal(address(burner), 0);
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
@@ -115,6 +118,7 @@ contract DC_rETH_BurnerTest is Test {
         burnAmount1 = bound(burnAmount1, 1, type(uint256).max);
 
         burner = new DC_rETH_Burner(COLLATERAL);
+        vm.deal(address(burner), 0);
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
