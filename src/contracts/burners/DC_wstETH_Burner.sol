@@ -89,14 +89,13 @@ contract DC_wstETH_Burner is IDC_wstETH_Burner {
      * @inheritdoc IDC_wstETH_Burner
      */
     function triggerWithdrawal(uint256 maxRequests) external returns (uint256[] memory requestIds_) {
-        uint256 amountOfWstETH = IERC20(COLLATERAL).balanceOf(address(this));
-        IDefaultCollateral(COLLATERAL).withdraw(address(this), amountOfWstETH);
-        IWstETH(ASSET).unwrap(amountOfWstETH);
-        uint256 amountOfStETH = IERC20(STETH).balanceOf(address(this));
+        uint256 wstETHAmount = IERC20(COLLATERAL).balanceOf(address(this));
+        IDefaultCollateral(COLLATERAL).withdraw(address(this), wstETHAmount);
+        IWstETH(ASSET).unwrap(wstETHAmount);
+        uint256 stETHAmount = IERC20(STETH).balanceOf(address(this));
 
-        uint256 requests = amountOfStETH / MAX_STETH_WITHDRAWAL_AMOUNT;
-        uint256 remainder = amountOfStETH % MAX_STETH_WITHDRAWAL_AMOUNT;
-        if (remainder >= MIN_STETH_WITHDRAWAL_AMOUNT) {
+        uint256 requests = stETHAmount / MAX_STETH_WITHDRAWAL_AMOUNT;
+        if (stETHAmount % MAX_STETH_WITHDRAWAL_AMOUNT >= MIN_STETH_WITHDRAWAL_AMOUNT) {
             requests += 1;
         }
         requests = Math.min(requests, maxRequests);
@@ -111,7 +110,7 @@ contract DC_wstETH_Burner is IDC_wstETH_Burner {
             amounts[i] = MAX_STETH_WITHDRAWAL_AMOUNT;
         }
         amounts[requestsMinusOne] =
-            Math.min(amountOfStETH - requestsMinusOne * MAX_STETH_WITHDRAWAL_AMOUNT, MAX_STETH_WITHDRAWAL_AMOUNT);
+            Math.min(stETHAmount - requestsMinusOne * MAX_STETH_WITHDRAWAL_AMOUNT, MAX_STETH_WITHDRAWAL_AMOUNT);
 
         requestIds_ = IWithdrawalQueue(LIDO_WITHDRAWAL_QUEUE).requestWithdrawals(amounts, address(this));
 

@@ -32,8 +32,8 @@ contract DC_mETH_BurnerTest is Test {
     address public constant PROXY_ADMIN_TIMELOCK = 0xc26016f1166bE7b6c5611AAB104122E0f6c2aCE2;
 
     function setUp() public {
-        // uint256 mainnetFork = vm.createFork(vm.rpcUrl("mainnet"));
-        // vm.selectFork(mainnetFork);
+        uint256 mainnetFork = vm.createFork(vm.rpcUrl("mainnet"));
+        vm.selectFork(mainnetFork);
 
         owner = address(this);
         (alice, alicePrivateKey) = makeAddrAndKey("alice");
@@ -70,8 +70,6 @@ contract DC_mETH_BurnerTest is Test {
 
         burner = new DC_mETH_Burner(COLLATERAL);
         vm.deal(address(burner), 0);
-
-        uint256 initCollateralBalance = IERC20(COLLATERAL).balanceOf(address(this));
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
@@ -159,7 +157,7 @@ contract DC_mETH_BurnerTest is Test {
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
-        uint256 requestsId = burner.triggerWithdrawal();
+        burner.triggerWithdrawal();
 
         vm.deal(STAKING, 1_000_000 ether);
         vm.startPrank(STAKING);
