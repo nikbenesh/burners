@@ -11,17 +11,15 @@ contract DC_sUSDe_Miniburner is OwnableUpgradeable {
     address private immutable _ASSET;
 
     constructor(address asset) {
+        _disableInitializers();
+
         _ASSET = asset;
     }
 
     function initialize(uint256 amount) external initializer {
         __Ownable_init(msg.sender);
 
-        if (ISUSDe(_ASSET).cooldownDuration() != 0) {
-            ISUSDe(_ASSET).redeem(amount, address(this), address(this));
-        } else {
-            ISUSDe(_ASSET).cooldownShares(amount);
-        }
+        ISUSDe(_ASSET).cooldownShares(amount);
     }
 
     function triggerBurn() external onlyOwner {

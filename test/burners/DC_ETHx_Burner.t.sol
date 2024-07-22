@@ -80,6 +80,11 @@ contract DC_ETHx_BurnerTest is Test {
         assertEq(IERC20(ETHX).allowance(address(burner), USER_WITHDRAW_MANAGER), type(uint256).max);
     }
 
+    struct TempStruct {
+        uint256 firstRequestId_;
+        uint256 initCollateralBalance;
+    }
+
     function test_TriggerWithdrawal(uint256 depositAmount1, uint256 depositAmount2, uint256 maxRequests) public {
         depositAmount1 = bound(depositAmount1, withdrawRequestMinimum / 2, 50_000 ether);
         depositAmount2 = bound(depositAmount2, withdrawRequestMinimum / 2, 50_000 ether);
@@ -88,11 +93,13 @@ contract DC_ETHx_BurnerTest is Test {
         burner = new DC_ETHx_Burner(COLLATERAL, STADER_CONFIG);
         vm.deal(address(burner), 0);
 
-        uint256 initCollateralBalance = IERC20(COLLATERAL).balanceOf(address(this));
+        TempStruct memory temp = TempStruct({
+            firstRequestId_: IUserWithdrawalManager(USER_WITHDRAW_MANAGER).nextRequestId(),
+            initCollateralBalance: IERC20(COLLATERAL).balanceOf(address(this))
+        });
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
-        uint256 firstRequestId_ = IUserWithdrawalManager(USER_WITHDRAW_MANAGER).nextRequestId();
         vm.assume(
             IStaderStakePoolsManager(STAKE_POOLS_MANAGER).previewWithdraw(depositAmount1)
                 >= IStaderConfig(STADER_CONFIG).getMinWithdrawAmount()
@@ -121,32 +128,32 @@ contract DC_ETHx_BurnerTest is Test {
 
         assertEq(IERC20(ETHX).balanceOf(address(burner)), depositAmount1 - withdrawal1);
 
-        assertEq(firstRequestId, firstRequestId_);
-        assertEq(lastRequestId, firstRequestId_ + N1 - 1);
+        assertEq(firstRequestId, temp.firstRequestId_);
+        assertEq(lastRequestId, temp.firstRequestId_ + N1 - 1);
         assertEq(burner.requestIdsLength(), N1);
         uint256[] memory requestsIds = burner.requestIds(0, type(uint256).max);
         assertEq(requestsIds.length, N1);
         for (uint256 i; i < N1; ++i) {
-            assertEq(requestsIds[i], firstRequestId_ + i);
+            assertEq(requestsIds[i], temp.firstRequestId_ + i);
         }
         requestsIds = burner.requestIds(0, 0);
         assertEq(requestsIds.length, 0);
         requestsIds = burner.requestIds(0, 1);
         assertEq(requestsIds.length, 1);
-        assertEq(requestsIds[0], firstRequestId_);
+        assertEq(requestsIds[0], temp.firstRequestId_);
         if (N1 > 1) {
             requestsIds = burner.requestIds(1, 1);
             assertEq(requestsIds.length, 1);
-            assertEq(requestsIds[0], firstRequestId_ + 1);
+            assertEq(requestsIds[0], temp.firstRequestId_ + 1);
 
             requestsIds = burner.requestIds(1, 11_111);
             assertEq(requestsIds.length, N1 - 1);
             for (uint256 i; i < N1 - 1; ++i) {
-                assertEq(requestsIds[i], firstRequestId_ + i + 1);
+                assertEq(requestsIds[i], temp.firstRequestId_ + i + 1);
             }
         }
 
-        if (depositAmount1 + depositAmount2 <= initCollateralBalance) {
+        if (depositAmount1 + depositAmount2 <= temp.initCollateralBalance) {
             IERC20(COLLATERAL).transfer(address(burner), depositAmount2);
             vm.assume(
                 IStaderStakePoolsManager(STAKE_POOLS_MANAGER).previewWithdraw(
@@ -181,28 +188,28 @@ contract DC_ETHx_BurnerTest is Test {
                 IERC20(ETHX).balanceOf(address(burner)), (depositAmount1 - withdrawal1) + depositAmount2 - withdrawal2
             );
 
-            assertEq(firstRequestId, firstRequestId_ + N1);
-            assertEq(lastRequestId, firstRequestId_ + N1 + N2 - 1);
+            assertEq(firstRequestId, temp.firstRequestId_ + N1);
+            assertEq(lastRequestId, temp.firstRequestId_ + N1 + N2 - 1);
             assertEq(burner.requestIdsLength(), N1 + N2);
             requestsIds = burner.requestIds(0, type(uint256).max);
             assertEq(requestsIds.length, N1 + N2);
             for (uint256 i; i < N1 + N2; ++i) {
-                assertEq(requestsIds[i], firstRequestId_ + i);
+                assertEq(requestsIds[i], temp.firstRequestId_ + i);
             }
             requestsIds = burner.requestIds(0, 0);
             assertEq(requestsIds.length, 0);
             requestsIds = burner.requestIds(0, 1);
             assertEq(requestsIds.length, 1);
-            assertEq(requestsIds[0], firstRequestId_);
+            assertEq(requestsIds[0], temp.firstRequestId_);
             if (N1 + N2 > 1) {
                 requestsIds = burner.requestIds(1, 1);
                 assertEq(requestsIds.length, 1);
-                assertEq(requestsIds[0], firstRequestId_ + 1);
+                assertEq(requestsIds[0], temp.firstRequestId_ + 1);
 
                 requestsIds = burner.requestIds(1, 11_111);
                 assertEq(requestsIds.length, N1 + N2 - 1);
                 for (uint256 i; i < N1 + N2 - 1; ++i) {
-                    assertEq(requestsIds[i], firstRequestId_ + i + 1);
+                    assertEq(requestsIds[i], temp.firstRequestId_ + i + 1);
                 }
             }
         }

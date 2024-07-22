@@ -9,6 +9,20 @@ interface ISUSDe {
     function cooldownShares(uint256 shares) external returns (uint256 assets);
 
     /**
+     * @dev See {IERC4626-previewRedeem}.
+     */
+    function previewRedeem(uint256 shares) external returns (uint256);
+
+    /// @notice Set cooldown duration. If cooldown duration is set to zero, the StakedUSDeV2 behavior changes to follow ERC4626 standard and disables cooldownShares and cooldownAssets methods. If cooldown duration is greater than zero, the ERC4626 withdrawal and redeem functions are disabled, breaking the ERC4626 standard, and enabling the cooldownShares and the cooldownAssets functions.
+    /// @param duration Duration of the cooldown
+    function setCooldownDuration(uint24 duration) external;
+
+    /**
+     * @dev See {IERC4626-deposit}.
+     */
+    function deposit(uint256 assets, address receiver) external returns (uint256);
+
+    /**
      * @dev See {IERC4626-redeem}.
      */
     function redeem(uint256 shares, address receiver, address _owner) external returns (uint256);

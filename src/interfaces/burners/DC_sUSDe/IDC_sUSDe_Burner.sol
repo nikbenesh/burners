@@ -2,7 +2,9 @@
 pragma solidity 0.8.25;
 
 interface IDC_sUSDe_Burner {
+    error HasCooldown();
     error InvalidRequestId();
+    error NoCooldown();
 
     /**
      * @notice Emitted when a withdrawal is triggered.
@@ -19,6 +21,13 @@ interface IDC_sUSDe_Burner {
     event TriggerBurn(address indexed caller, address requestId);
 
     /**
+     * @notice Emitted when an instant burn is triggered.
+     * @param caller caller of the function
+     * @param amount amount of the collateral that was burned
+     */
+    event TriggerInstantBurn(address indexed caller, uint256 amount);
+
+    /**
      * @notice Get an address of the Default Collateral contract.
      */
     function COLLATERAL() external view returns (address);
@@ -27,11 +36,6 @@ interface IDC_sUSDe_Burner {
      * @notice Get an address of the collateral's asset.
      */
     function ASSET() external view returns (address);
-
-    /**
-     * @notice Get an implementation of Miniburner.
-     */
-    function MINIBURNER_IMPLEMENTATION() external view returns (address);
 
     /**
      * @notice Get the number of unprocessed request IDs.
@@ -57,4 +61,9 @@ interface IDC_sUSDe_Burner {
      * @param requestId request ID of the withdrawal to process
      */
     function triggerBurn(address requestId) external;
+
+    /**
+     * @notice Trigger an instant burn of USDe.
+     */
+    function triggerInstantBurn() external;
 }
