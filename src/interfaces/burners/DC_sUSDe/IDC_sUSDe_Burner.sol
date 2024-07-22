@@ -38,6 +38,11 @@ interface IDC_sUSDe_Burner {
     function ASSET() external view returns (address);
 
     /**
+     * @notice Get an address of the USDe contract.
+     */
+    function USDE() external view returns (address);
+
+    /**
      * @notice Get the number of unprocessed request IDs.
      */
     function requestIdsLength() external view returns (uint256);

@@ -27,7 +27,6 @@ contract DC_sUSDe_BurnerTest is Test {
     address public constant SUSDE = 0x9D39A5DE30e57443BfF2A8307A4256c8797A3497;
     address public constant MINTER = 0xe3490297a08d6fC8Da46Edb7B6142E4F461b62D3;
     address public constant USDE = 0x4c9EDD5852cd905f086C759E8383e09bff1E68B3;
-    address public constant DEAD = address(0xdEaD);
     address public constant DEFAULT_ADMIN = 0x3B0AAf6e6fCd4a7cEEf8c92C32DFeA9E64dC1862;
 
     function setUp() public {
@@ -64,6 +63,7 @@ contract DC_sUSDe_BurnerTest is Test {
 
         assertEq(burner.COLLATERAL(), COLLATERAL);
         assertEq(burner.ASSET(), SUSDE);
+        assertEq(burner.USDE(), USDE);
     }
 
     function test_TriggerWithdrawal(uint256 depositAmount1, uint256 depositAmount2, uint24 duration) public {
@@ -139,9 +139,9 @@ contract DC_sUSDe_BurnerTest is Test {
 
         vm.warp(block.timestamp + ISUSDe(SUSDE).cooldownDuration());
 
-        uint256 balanceBefore = IERC20(USDE).balanceOf(DEAD);
+        uint256 totalSupplyBefore = IERC20(USDE).totalSupply();
         burner.triggerBurn(requestsId);
-        assertEq(IERC20(USDE).balanceOf(DEAD) - balanceBefore, usdeAmount);
+        assertEq(totalSupplyBefore - IERC20(USDE).totalSupply(), usdeAmount);
 
         assertEq(burner.requestIdsLength(), 0);
     }
@@ -198,9 +198,9 @@ contract DC_sUSDe_BurnerTest is Test {
 
         uint256 usdeAmount = ISUSDe(SUSDE).previewRedeem(depositAmount1);
 
-        uint256 balanceBefore = IERC20(USDE).balanceOf(DEAD);
+        uint256 totalSupplyBefore = IERC20(USDE).totalSupply();
         burner.triggerInstantBurn();
-        assertEq(IERC20(USDE).balanceOf(DEAD) - balanceBefore, usdeAmount);
+        assertEq(totalSupplyBefore - IERC20(USDE).totalSupply(), usdeAmount);
 
         assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), 0);
     }

@@ -2,6 +2,11 @@
 pragma solidity 0.8.25;
 
 interface ISUSDe {
+    /**
+     * @dev See {IERC4626-asset}.
+     */
+    function asset() external view returns (address);
+
     function cooldownDuration() external view returns (uint24);
 
     /// @notice redeem shares into assets and starts a cooldown to claim the converted underlying asset
