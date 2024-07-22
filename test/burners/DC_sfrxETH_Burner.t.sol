@@ -29,8 +29,8 @@ contract DC_sfrxETH_BurnerTest is Test {
     address public constant FRXETH_MINTER = 0xbAFA44EFE7901E04E39Dad13167D089C559c1138;
 
     function setUp() public {
-        // uint256 mainnetFork = vm.createFork(vm.rpcUrl("mainnet"));
-        // vm.selectFork(mainnetFork);
+        uint256 mainnetFork = vm.createFork(vm.rpcUrl("mainnet"));
+        vm.selectFork(mainnetFork);
 
         owner = address(this);
         (alice, alicePrivateKey) = makeAddrAndKey("alice");

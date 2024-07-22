@@ -3,55 +3,68 @@ pragma solidity 0.8.25;
 
 import {SelfDestruct} from "src/contracts/SelfDestruct.sol";
 
-import {IDC_swETH_Burner} from "src/interfaces/burners/DC_swETH/IDC_swETH_Burner.sol";
-import {ISwEXIT} from "src/interfaces/burners/DC_swETH/ISwEXIT.sol";
+import {IDC_ETHx_Burner} from "src/interfaces/burners/DC_ETHx/IDC_ETHx_Burner.sol";
+import {IStaderStakePoolsManager} from "src/interfaces/burners/DC_ETHx/IStaderStakePoolsManager.sol";
+import {IUserWithdrawalManager} from "src/interfaces/burners/DC_ETHx/IUserWithdrawalManager.sol";
+import {IStaderConfig} from "src/interfaces/burners/DC_ETHx/IStaderConfig.sol";
 
 import {IDefaultCollateral} from "@symbiotic/collateral/interfaces/defaultCollateral/IDefaultCollateral.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-contract DC_swETH_Burner is IDC_swETH_Burner, IERC721Receiver {
+contract DC_ETHx_Burner is IDC_ETHx_Burner {
     using Math for uint256;
     using EnumerableSet for EnumerableSet.UintSet;
 
     /**
-     * @inheritdoc IDC_swETH_Burner
+     * @inheritdoc IDC_ETHx_Burner
      */
     address public immutable COLLATERAL;
 
     /**
-     * @inheritdoc IDC_swETH_Burner
+     * @inheritdoc IDC_ETHx_Burner
      */
     address public immutable ASSET;
 
     /**
-     * @inheritdoc IDC_swETH_Burner
+     * @inheritdoc IDC_ETHx_Burner
      */
-    address public immutable SWEXIT;
+    address public immutable STADER_CONFIG;
+
+    /**
+     * @inheritdoc IDC_ETHx_Burner
+     */
+    address public immutable USER_WITHDRAW_MANAGER;
+
+    /**
+     * @inheritdoc IDC_ETHx_Burner
+     */
+    address public immutable STAKE_POOLS_MANAGER;
 
     EnumerableSet.UintSet private _requestIds;
 
-    constructor(address collateral, address swEXIT) {
+    constructor(address collateral, address staderConfig) {
         COLLATERAL = collateral;
 
         ASSET = IDefaultCollateral(collateral).asset();
 
-        SWEXIT = swEXIT;
+        STADER_CONFIG = staderConfig;
+        USER_WITHDRAW_MANAGER = IStaderConfig(STADER_CONFIG).getUserWithdrawManager();
+        STAKE_POOLS_MANAGER = IStaderConfig(STADER_CONFIG).getStakePoolManager();
 
-        IERC20(ASSET).approve(SWEXIT, type(uint256).max);
+        IERC20(ASSET).approve(USER_WITHDRAW_MANAGER, type(uint256).max);
     }
 
     /**
-     * @inheritdoc IDC_swETH_Burner
+     * @inheritdoc IDC_ETHx_Burner
      */
     function requestIdsLength() external view returns (uint256) {
         return _requestIds.length();
     }
 
     /**
-     * @inheritdoc IDC_swETH_Burner
+     * @inheritdoc IDC_ETHx_Burner
      */
     function requestIds(uint256 index, uint256 maxRequestIds) external view returns (uint256[] memory requestIds_) {
         uint256 length = Math.min(index + maxRequestIds, _requestIds.length()) - index;
@@ -67,14 +80,18 @@ contract DC_swETH_Burner is IDC_swETH_Burner, IERC721Receiver {
     }
 
     /**
-     * @inheritdoc IDC_swETH_Burner
+     * @inheritdoc IDC_ETHx_Burner
      */
     function triggerWithdrawal(uint256 maxRequests) external returns (uint256 firstRequestId, uint256 lastRequestId) {
         IDefaultCollateral(COLLATERAL).withdraw(address(this), IERC20(COLLATERAL).balanceOf(address(this)));
         uint256 amount = IERC20(ASSET).balanceOf(address(this));
 
-        uint256 maxWithdrawalAmount = ISwEXIT(SWEXIT).withdrawRequestMaximum();
-        uint256 minWithdrawalAmount = ISwEXIT(SWEXIT).withdrawRequestMinimum();
+        uint256 maxWithdrawalAmount = IStaderStakePoolsManager(STAKE_POOLS_MANAGER).previewDeposit(
+            IStaderConfig(STADER_CONFIG).getMaxWithdrawAmount()
+        );
+        uint256 minWithdrawalAmount = IStaderStakePoolsManager(STAKE_POOLS_MANAGER).previewDeposit(
+            IStaderConfig(STADER_CONFIG).getMinWithdrawAmount()
+        ) + 1;
 
         uint256 requests = amount / maxWithdrawalAmount;
         if (amount % maxWithdrawalAmount >= minWithdrawalAmount) {
@@ -87,16 +104,16 @@ contract DC_swETH_Burner is IDC_swETH_Burner, IERC721Receiver {
         }
 
         uint256 requestsMinusOne = requests - 1;
-        firstRequestId = ISwEXIT(SWEXIT).getLastTokenIdCreated() + 1;
+        firstRequestId = IUserWithdrawalManager(USER_WITHDRAW_MANAGER).nextRequestId();
         lastRequestId = firstRequestId + requestsMinusOne;
         uint256 requestId = firstRequestId;
         for (; requestId < lastRequestId; ++requestId) {
             _requestIds.add(requestId);
-            ISwEXIT(SWEXIT).createWithdrawRequest(maxWithdrawalAmount);
+            IUserWithdrawalManager(USER_WITHDRAW_MANAGER).requestWithdraw(maxWithdrawalAmount, address(this));
         }
         _requestIds.add(requestId);
-        ISwEXIT(SWEXIT).createWithdrawRequest(
-            Math.min(amount - requestsMinusOne * maxWithdrawalAmount, maxWithdrawalAmount)
+        IUserWithdrawalManager(USER_WITHDRAW_MANAGER).requestWithdraw(
+            Math.min(amount - requestsMinusOne * maxWithdrawalAmount, maxWithdrawalAmount), address(this)
         );
 
         emit TriggerWithdrawal(msg.sender, firstRequestId, lastRequestId);
@@ -105,25 +122,18 @@ contract DC_swETH_Burner is IDC_swETH_Burner, IERC721Receiver {
     }
 
     /**
-     * @inheritdoc IDC_swETH_Burner
+     * @inheritdoc IDC_ETHx_Burner
      */
     function triggerBurn(uint256 requestId) external {
         if (!_requestIds.remove(requestId)) {
             revert InvalidRequestId();
         }
 
-        ISwEXIT(SWEXIT).finalizeWithdrawal(requestId);
+        IUserWithdrawalManager(USER_WITHDRAW_MANAGER).claim(requestId);
 
         new SelfDestruct{value: address(this).balance}();
 
         emit TriggerBurn(msg.sender, requestId);
-    }
-
-    /**
-     * @inheritdoc IERC721Receiver
-     */
-    function onERC721Received(address, address, uint256, bytes calldata) external returns (bytes4) {
-        return IERC721Receiver.onERC721Received.selector;
     }
 
     receive() external payable {}

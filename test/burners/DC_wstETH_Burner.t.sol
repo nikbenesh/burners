@@ -34,6 +34,9 @@ contract DC_wstETH_BurnerTest is Test {
     address public constant STETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
     address public constant WSTETH = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
 
+    uint256 public constant MIN_STETH_WITHDRAWAL_AMOUNT = 100;
+    uint256 public constant MAX_STETH_WITHDRAWAL_AMOUNT = 1000 ether;
+
     function setUp() public {
         uint256 mainnetFork = vm.createFork(vm.rpcUrl("mainnet"));
         vm.selectFork(mainnetFork);
@@ -67,8 +70,8 @@ contract DC_wstETH_BurnerTest is Test {
         assertEq(burner.ASSET(), WSTETH);
         assertEq(burner.LIDO_WITHDRAWAL_QUEUE(), LIDO_WITHDRAWAL_QUEUE);
         assertEq(burner.STETH(), STETH);
-        assertEq(burner.MIN_STETH_WITHDRAWAL_AMOUNT(), 100);
-        assertEq(burner.MAX_STETH_WITHDRAWAL_AMOUNT(), 1000 ether);
+        assertEq(burner.MIN_STETH_WITHDRAWAL_AMOUNT(), MIN_STETH_WITHDRAWAL_AMOUNT);
+        assertEq(burner.MAX_STETH_WITHDRAWAL_AMOUNT(), MAX_STETH_WITHDRAWAL_AMOUNT);
         assertEq(IERC20(STETH).allowance(address(burner), LIDO_WITHDRAWAL_QUEUE), type(uint256).max);
     }
 
@@ -91,21 +94,21 @@ contract DC_wstETH_BurnerTest is Test {
         uint256[] memory requestsIds = burner.triggerWithdrawal(maxRequests);
         assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), 0);
 
-        uint256 N1 = stETHAmount1 / 1000 ether;
-        if (stETHAmount1 % 1000 ether >= 100) {
+        uint256 N1 = stETHAmount1 / MAX_STETH_WITHDRAWAL_AMOUNT;
+        if (stETHAmount1 % MAX_STETH_WITHDRAWAL_AMOUNT >= MIN_STETH_WITHDRAWAL_AMOUNT) {
             N1 += 1;
         }
         uint256 withdrawal1;
         if (maxRequests < N1) {
             N1 = maxRequests;
 
-            withdrawal1 = N1 * 1000 ether;
+            withdrawal1 = N1 * MAX_STETH_WITHDRAWAL_AMOUNT;
         } else {
-            withdrawal1 = (N1 - 1) * 1000 ether;
-            if (stETHAmount1 % 1000 ether >= 100) {
-                withdrawal1 += stETHAmount1 % 1000 ether;
+            withdrawal1 = (N1 - 1) * MAX_STETH_WITHDRAWAL_AMOUNT;
+            if (stETHAmount1 % MAX_STETH_WITHDRAWAL_AMOUNT >= MIN_STETH_WITHDRAWAL_AMOUNT) {
+                withdrawal1 += stETHAmount1 % MAX_STETH_WITHDRAWAL_AMOUNT;
             } else {
-                withdrawal1 += 1000 ether;
+                withdrawal1 += MAX_STETH_WITHDRAWAL_AMOUNT;
             }
         }
 
@@ -131,7 +134,7 @@ contract DC_wstETH_BurnerTest is Test {
             assertEq(requestsIds.length, 1);
             assertEq(requestsIds[0], lastRequestId + 2);
 
-            requestsIds = burner.requestIds(1, 10_000);
+            requestsIds = burner.requestIds(1, 11_111);
             assertEq(requestsIds.length, N1 - 1);
             for (uint256 i; i < N1 - 1; ++i) {
                 assertEq(requestsIds[i], lastRequestId + i + 2);
@@ -142,26 +145,32 @@ contract DC_wstETH_BurnerTest is Test {
             IERC20(COLLATERAL).transfer(address(burner), depositAmount2);
 
             uint256 stETHAmount2 = IWstETH(WSTETH).getStETHByWstETH(depositAmount2);
-            vm.assume(stETHAmount2 >= 100);
+            vm.assume(stETHAmount2 + (stETHAmount1 - withdrawal1) >= MIN_STETH_WITHDRAWAL_AMOUNT);
             assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), depositAmount2);
             requestsIds = burner.triggerWithdrawal(maxRequests);
             assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), 0);
 
-            uint256 N2 = (stETHAmount2 + (stETHAmount1 - withdrawal1)) / 1000 ether;
-            if ((stETHAmount2 + (stETHAmount1 - withdrawal1)) % 1000 ether >= 100) {
+            uint256 N2 = (stETHAmount2 + (stETHAmount1 - withdrawal1)) / MAX_STETH_WITHDRAWAL_AMOUNT;
+            if (
+                (stETHAmount2 + (stETHAmount1 - withdrawal1)) % MAX_STETH_WITHDRAWAL_AMOUNT
+                    >= MIN_STETH_WITHDRAWAL_AMOUNT
+            ) {
                 N2 += 1;
             }
             uint256 withdrawal2;
             if (maxRequests < N2) {
                 N2 = maxRequests;
 
-                withdrawal2 = N2 * 1000 ether;
+                withdrawal2 = N2 * MAX_STETH_WITHDRAWAL_AMOUNT;
             } else {
-                withdrawal2 = (N2 - 1) * 1000 ether;
-                if ((stETHAmount2 + (stETHAmount1 - withdrawal1)) % 1000 ether >= 100) {
-                    withdrawal2 += (stETHAmount2 + (stETHAmount1 - withdrawal1)) % 1000 ether;
+                withdrawal2 = (N2 - 1) * MAX_STETH_WITHDRAWAL_AMOUNT;
+                if (
+                    (stETHAmount2 + (stETHAmount1 - withdrawal1)) % MAX_STETH_WITHDRAWAL_AMOUNT
+                        >= MIN_STETH_WITHDRAWAL_AMOUNT
+                ) {
+                    withdrawal2 += (stETHAmount2 + (stETHAmount1 - withdrawal1)) % MAX_STETH_WITHDRAWAL_AMOUNT;
                 } else {
-                    withdrawal2 += 1000 ether;
+                    withdrawal2 += MAX_STETH_WITHDRAWAL_AMOUNT;
                 }
             }
 
@@ -191,7 +200,7 @@ contract DC_wstETH_BurnerTest is Test {
                 assertEq(requestsIds.length, 1);
                 assertEq(requestsIds[0], lastRequestId + 2);
 
-                requestsIds = burner.requestIds(1, 10_000);
+                requestsIds = burner.requestIds(1, 11_111);
                 assertEq(requestsIds.length, N1 + N2 - 1);
                 for (uint256 i; i < N1 + N2 - 1; ++i) {
                     assertEq(requestsIds[i], lastRequestId + i + 2);
@@ -201,9 +210,9 @@ contract DC_wstETH_BurnerTest is Test {
     }
 
     function test_TriggerWithdrawalRevertInsufficientWithdrawal(uint256 depositAmount1) public {
-        depositAmount1 = bound(depositAmount1, 1, 100);
+        depositAmount1 = bound(depositAmount1, 1, MIN_STETH_WITHDRAWAL_AMOUNT);
         uint256 stETHAmount1 = IWstETH(WSTETH).getStETHByWstETH(depositAmount1);
-        vm.assume(stETHAmount1 < 100);
+        vm.assume(stETHAmount1 < MIN_STETH_WITHDRAWAL_AMOUNT);
 
         burner = new DC_wstETH_Burner(COLLATERAL, LIDO_WITHDRAWAL_QUEUE);
         vm.deal(address(burner), 0);
