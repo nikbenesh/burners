@@ -9,6 +9,7 @@ import {IDC_ETHx_Burner} from "src/interfaces/burners/DC_ETHx/IDC_ETHx_Burner.so
 import {IStaderConfig} from "src/interfaces/burners/DC_ETHx/IStaderConfig.sol";
 import {IStaderStakePoolsManager} from "src/interfaces/burners/DC_ETHx/IStaderStakePoolsManager.sol";
 import {IUserWithdrawalManager} from "src/interfaces/burners/DC_ETHx/IUserWithdrawalManager.sol";
+import {IUintRequests} from "src/interfaces/IUintRequests.sol";
 
 import {IERC20, IWETH} from "test/mocks/AaveV3Borrow.sol";
 
@@ -261,7 +262,7 @@ contract DC_ETHx_BurnerTest is Test {
             IUserWithdrawalManager(USER_WITHDRAW_MANAGER).finalizeUserWithdrawalRequest();
         }
 
-        vm.expectRevert(IDC_ETHx_Burner.InvalidRequestId.selector);
+        vm.expectRevert(IUintRequests.InvalidRequestId.selector);
         burner.triggerBurn(0);
     }
 }

@@ -8,6 +8,7 @@ import {DC_swETH_Burner} from "src/contracts/burners/DC_swETH_Burner.sol";
 import {ISwEXIT} from "src/interfaces/burners/DC_swETH/ISwEXIT.sol";
 import {ISwETH} from "src/interfaces/burners/DC_swETH/ISwETH.sol";
 import {IDC_swETH_Burner} from "src/interfaces/burners/DC_swETH/IDC_swETH_Burner.sol";
+import {IUintRequests} from "src/interfaces/IUintRequests.sol";
 
 import {IERC20, IWETH} from "test/mocks/AaveV3Borrow.sol";
 
@@ -240,7 +241,7 @@ contract DC_swETH_BurnerTest is Test {
         ISwEXIT(SWEXIT).processWithdrawals(lastRequestId);
         vm.stopPrank();
 
-        vm.expectRevert(IDC_swETH_Burner.InvalidRequestId.selector);
+        vm.expectRevert(IUintRequests.InvalidRequestId.selector);
         burner.triggerBurn(0);
     }
 }

@@ -7,6 +7,7 @@ import {DC_sfrxETH_Burner} from "src/contracts/burners/DC_sfrxETH_Burner.sol";
 
 import {IFraxEtherRedemptionQueue} from "src/interfaces/burners/DC_sfrxETH/IFraxEtherRedemptionQueue.sol";
 import {IDC_sfrxETH_Burner} from "src/interfaces/burners/DC_sfrxETH/IDC_sfrxETH_Burner.sol";
+import {IUintRequests} from "src/interfaces/IUintRequests.sol";
 
 import {IERC20} from "test/mocks/AaveV3Borrow.sol";
 
@@ -145,7 +146,7 @@ contract DC_sfrxETH_BurnerTest is Test {
 
         vm.warp(block.timestamp + queueLengthSecs);
 
-        vm.expectRevert(IDC_sfrxETH_Burner.InvalidRequestId.selector);
+        vm.expectRevert(IUintRequests.InvalidRequestId.selector);
         burner.triggerBurn(0);
     }
 }

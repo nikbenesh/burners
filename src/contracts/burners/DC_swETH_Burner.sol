@@ -2,18 +2,17 @@
 pragma solidity 0.8.25;
 
 import {SelfDestruct} from "src/contracts/SelfDestruct.sol";
+import {UintRequests} from "src/contracts/UintRequests.sol";
 
 import {IDC_swETH_Burner} from "src/interfaces/burners/DC_swETH/IDC_swETH_Burner.sol";
 import {ISwEXIT} from "src/interfaces/burners/DC_swETH/ISwEXIT.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-contract DC_swETH_Burner is IDC_swETH_Burner, IERC721Receiver {
+contract DC_swETH_Burner is UintRequests, IDC_swETH_Burner, IERC721Receiver {
     using Math for uint256;
-    using EnumerableSet for EnumerableSet.UintSet;
 
     /**
      * @inheritdoc IDC_swETH_Burner
@@ -25,37 +24,12 @@ contract DC_swETH_Burner is IDC_swETH_Burner, IERC721Receiver {
      */
     address public immutable SWEXIT;
 
-    EnumerableSet.UintSet private _requestIds;
-
     constructor(address collateral, address swEXIT) {
         COLLATERAL = collateral;
 
         SWEXIT = swEXIT;
 
         IERC20(COLLATERAL).approve(SWEXIT, type(uint256).max);
-    }
-
-    /**
-     * @inheritdoc IDC_swETH_Burner
-     */
-    function requestIdsLength() external view returns (uint256) {
-        return _requestIds.length();
-    }
-
-    /**
-     * @inheritdoc IDC_swETH_Burner
-     */
-    function requestIds(uint256 index, uint256 maxRequestIds) external view returns (uint256[] memory requestIds_) {
-        uint256 length = Math.min(index + maxRequestIds, _requestIds.length()) - index;
-
-        requestIds_ = new uint256[](length);
-        for (uint256 i; i < length;) {
-            requestIds_[i] = _requestIds.at(index);
-            unchecked {
-                ++i;
-                ++index;
-            }
-        }
     }
 
     /**
@@ -82,10 +56,10 @@ contract DC_swETH_Burner is IDC_swETH_Burner, IERC721Receiver {
         lastRequestId = firstRequestId + requestsMinusOne;
         uint256 requestId = firstRequestId;
         for (; requestId < lastRequestId; ++requestId) {
-            _requestIds.add(requestId);
+            _addRequestId(requestId);
             ISwEXIT(SWEXIT).createWithdrawRequest(maxWithdrawalAmount);
         }
-        _requestIds.add(requestId);
+        _addRequestId(requestId);
         ISwEXIT(SWEXIT).createWithdrawRequest(
             Math.min(amount - requestsMinusOne * maxWithdrawalAmount, maxWithdrawalAmount)
         );
@@ -99,9 +73,7 @@ contract DC_swETH_Burner is IDC_swETH_Burner, IERC721Receiver {
      * @inheritdoc IDC_swETH_Burner
      */
     function triggerBurn(uint256 requestId) external {
-        if (!_requestIds.remove(requestId)) {
-            revert InvalidRequestId();
-        }
+        _removeRequestId(requestId);
 
         ISwEXIT(SWEXIT).finalizeWithdrawal(requestId);
 

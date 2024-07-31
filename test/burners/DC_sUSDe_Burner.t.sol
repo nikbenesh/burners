@@ -8,6 +8,7 @@ import {DC_sUSDe_Miniburner} from "src/contracts/burners/DC_sUSDe/DC_sUSDe_Minib
 
 import {IDC_sUSDe_Burner} from "src/interfaces/burners/DC_sUSDe/IDC_sUSDe_Burner.sol";
 import {ISUSDe} from "src/interfaces/burners/DC_sUSDe/ISUSDe.sol";
+import {IAddressRequests} from "src/interfaces/IAddressRequests.sol";
 
 import {IERC20} from "test/mocks/AaveV3Borrow.sol";
 
@@ -149,7 +150,7 @@ contract DC_sUSDe_BurnerTest is Test {
 
         vm.warp(block.timestamp + ISUSDe(COLLATERAL).cooldownDuration());
 
-        vm.expectRevert(IDC_sUSDe_Burner.InvalidRequestId.selector);
+        vm.expectRevert(IAddressRequests.InvalidRequestId.selector);
         burner.triggerBurn(address(0));
     }
 

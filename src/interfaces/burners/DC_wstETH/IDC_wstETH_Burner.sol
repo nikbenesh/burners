@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-interface IDC_wstETH_Burner {
+import {IUintRequests} from "src/interfaces/IUintRequests.sol";
+
+interface IDC_wstETH_Burner is IUintRequests {
     error InsufficientWithdrawal();
-    error InvalidRequestId();
 
     /**
      * @notice Emitted when a withdrawal is triggered.
@@ -50,19 +51,6 @@ interface IDC_wstETH_Burner {
      * @notice Get a maximum amount of stETH that can be withdrawn at a request.
      */
     function MAX_STETH_WITHDRAWAL_AMOUNT() external view returns (uint256);
-
-    /**
-     * @notice Get the number of unprocessed request IDs.
-     */
-    function requestIdsLength() external view returns (uint256);
-
-    /**
-     * @notice Get a list of unprocessed request IDs.
-     * @param index index of the first request ID
-     * @param maxRequestIds maximum number of request IDs to return
-     * @return requestIds request IDs
-     */
-    function requestIds(uint256 index, uint256 maxRequestIds) external view returns (uint256[] memory requestIds);
 
     /**
      * @notice Trigger a withdrawal of ETH from the collateral's underlying asset.

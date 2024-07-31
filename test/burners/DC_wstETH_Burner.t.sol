@@ -8,6 +8,7 @@ import {DC_wstETH_Burner} from "src/contracts/burners/DC_wstETH_Burner.sol";
 import {IWithdrawalQueue} from "src/interfaces/burners/DC_wstETH/IWithdrawalQueue.sol";
 import {IWstETH} from "src/interfaces/burners/DC_wstETH/IWstETH.sol";
 import {IDC_wstETH_Burner} from "src/interfaces/burners/DC_wstETH/IDC_wstETH_Burner.sol";
+import {IUintRequests} from "src/interfaces/IUintRequests.sol";
 
 import {AaveV3Borrow, IERC20, IWETH} from "test/mocks/AaveV3Borrow.sol";
 
@@ -260,7 +261,7 @@ contract DC_wstETH_BurnerTest is Test {
         IWithdrawalQueue(LIDO_WITHDRAWAL_QUEUE).finalize(requestsIds[0], 1e18);
         vm.stopPrank();
 
-        vm.expectRevert(IDC_wstETH_Burner.InvalidRequestId.selector);
+        vm.expectRevert(IUintRequests.InvalidRequestId.selector);
         burner.triggerBurn(0);
     }
 
@@ -319,7 +320,7 @@ contract DC_wstETH_BurnerTest is Test {
             requestsIds, 1, IWithdrawalQueue(LIDO_WITHDRAWAL_QUEUE).getLastCheckpointIndex()
         );
         requestsIds[requestsIds.length - 1] = 0;
-        vm.expectRevert(IDC_wstETH_Burner.InvalidRequestId.selector);
+        vm.expectRevert(IUintRequests.InvalidRequestId.selector);
         burner.triggerBurnBatch(requestsIds, hints);
     }
 }

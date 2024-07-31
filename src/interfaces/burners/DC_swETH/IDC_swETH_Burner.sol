@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-interface IDC_swETH_Burner {
+import {IUintRequests} from "src/interfaces/IUintRequests.sol";
+
+interface IDC_swETH_Burner is IUintRequests {
     error InsufficientWithdrawal();
-    error InvalidRequestId();
 
     /**
      * @notice Emitted when a withdrawal is triggered.
@@ -29,19 +30,6 @@ interface IDC_swETH_Burner {
      * @notice Get an address of the Swell Exit contract.
      */
     function SWEXIT() external view returns (address);
-
-    /**
-     * @notice Get the number of unprocessed request IDs.
-     */
-    function requestIdsLength() external view returns (uint256);
-
-    /**
-     * @notice Get a list of unprocessed request IDs.
-     * @param index index of the first request ID
-     * @param maxRequestIds maximum number of request IDs to return
-     * @return requestIds request IDs
-     */
-    function requestIds(uint256 index, uint256 maxRequestIds) external view returns (uint256[] memory requestIds);
 
     /**
      * @notice Trigger a withdrawal of ETH from the collateral's underlying asset.

@@ -8,6 +8,7 @@ import {DC_mETH_Burner} from "src/contracts/burners/DC_mETH_Burner.sol";
 import {IStaking} from "src/interfaces/burners/DC_mETH/IStaking.sol";
 import {IMETH} from "src/interfaces/burners/DC_mETH/IMETH.sol";
 import {IDC_mETH_Burner} from "src/interfaces/burners/DC_mETH/IDC_mETH_Burner.sol";
+import {IUintRequests} from "src/interfaces/IUintRequests.sol";
 
 import {IERC20} from "test/mocks/AaveV3Borrow.sol";
 
@@ -155,7 +156,7 @@ contract DC_mETH_BurnerTest is Test {
         ITransparentUpgradeableProxy(ORACLE).upgradeTo(address(newOracle));
         vm.stopPrank();
 
-        vm.expectRevert(IDC_mETH_Burner.InvalidRequestId.selector);
+        vm.expectRevert(IUintRequests.InvalidRequestId.selector);
         burner.triggerBurn(0);
     }
 }

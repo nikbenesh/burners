@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-interface IDC_sUSDe_Burner {
+import {IAddressRequests} from "src/interfaces/IAddressRequests.sol";
+
+interface IDC_sUSDe_Burner is IAddressRequests {
     error HasCooldown();
-    error InvalidRequestId();
     error NoCooldown();
 
     /**
@@ -36,19 +37,6 @@ interface IDC_sUSDe_Burner {
      * @notice Get an address of the USDe contract.
      */
     function USDE() external view returns (address);
-
-    /**
-     * @notice Get the number of unprocessed request IDs.
-     */
-    function requestIdsLength() external view returns (uint256);
-
-    /**
-     * @notice Get a list of unprocessed request IDs.
-     * @param index index of the first request ID
-     * @param maxRequestIds maximum number of request IDs to return
-     * @return requestIds request IDs
-     */
-    function requestIds(uint256 index, uint256 maxRequestIds) external view returns (address[] memory requestIds);
 
     /**
      * @notice Trigger a withdrawal of USDe from the collateral's underlying asset.
