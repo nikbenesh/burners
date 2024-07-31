@@ -11,7 +11,6 @@ import {IDC_mETH_Burner} from "src/interfaces/burners/DC_mETH/IDC_mETH_Burner.so
 
 import {IERC20} from "test/mocks/AaveV3Borrow.sol";
 
-import {IDefaultCollateral} from "@symbiotic/collateral/interfaces/defaultCollateral/IDefaultCollateral.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract DC_mETH_BurnerTest is Test {
@@ -23,9 +22,8 @@ contract DC_mETH_BurnerTest is Test {
 
     DC_mETH_Burner burner;
 
-    address public constant COLLATERAL = 0x475D3Eb031d250070B63Fa145F0fCFC5D97c304a;
+    address public constant COLLATERAL = 0xd5F7838F5C461fefF7FE49ea5ebaF7728bB0ADfa;
     address public constant STAKING = 0xe3cBd06D7dadB3F4e6557bAb7EdD924CD1489E8f;
-    address public constant METH = 0xd5F7838F5C461fefF7FE49ea5ebaF7728bB0ADfa;
     address public constant UNSTAKE_REQUESTS_MANAGER = 0x38fDF7b489316e03eD8754ad339cb5c4483FDcf9;
     address public constant ORACLE = 0x8735049F496727f824Cc0f2B174d826f5c408192;
     address public constant MANTLE_SECURITY_COUNCIL = 0x4e59e778a0fb77fBb305637435C62FaeD9aED40f;
@@ -39,19 +37,11 @@ contract DC_mETH_BurnerTest is Test {
         (alice, alicePrivateKey) = makeAddrAndKey("alice");
         (bob, bobPrivateKey) = makeAddrAndKey("bob");
 
-        IERC20(METH).approve(COLLATERAL, type(uint256).max);
-
         vm.deal(address(this), 1_000_000 ether);
 
-        vm.startPrank(IDefaultCollateral(COLLATERAL).limitIncreaser());
-        IDefaultCollateral(COLLATERAL).increaseLimit(100_000_000 ether);
-        vm.stopPrank();
-
         vm.startPrank(STAKING);
-        IMETH(METH).mint(address(this), 500_000 ether);
+        IMETH(COLLATERAL).mint(address(this), 500_000 ether);
         vm.stopPrank();
-
-        IDefaultCollateral(COLLATERAL).deposit(address(this), 500_000 ether);
     }
 
     function test_Create() public {
@@ -59,9 +49,8 @@ contract DC_mETH_BurnerTest is Test {
         vm.deal(address(burner), 0);
 
         assertEq(burner.COLLATERAL(), COLLATERAL);
-        assertEq(burner.ASSET(), METH);
         assertEq(burner.STAKING(), STAKING);
-        assertEq(IERC20(METH).allowance(address(burner), STAKING), type(uint256).max);
+        assertEq(IERC20(COLLATERAL).allowance(address(burner), STAKING), type(uint256).max);
     }
 
     function test_TriggerWithdrawal(uint256 depositAmount1, uint256 depositAmount2) public {
@@ -74,14 +63,12 @@ contract DC_mETH_BurnerTest is Test {
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
         assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), depositAmount1);
-        assertEq(IERC20(METH).balanceOf(address(burner)), 0);
         uint256 nextRequestId = IUnstakeRequestsManagerWrite(UNSTAKE_REQUESTS_MANAGER).nextRequestId();
         assertEq(address(burner).balance, 0);
         uint256 requestsId = burner.triggerWithdrawal();
         assertEq(address(burner).balance, 0);
         assertEq(requestsId, nextRequestId);
         assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), 0);
-        assertEq(IERC20(METH).balanceOf(address(burner)), 0);
 
         assertEq(burner.requestIdsLength(), 1);
         uint256[] memory requestsIds = burner.requestIds(0, type(uint256).max);
@@ -98,14 +85,12 @@ contract DC_mETH_BurnerTest is Test {
         IERC20(COLLATERAL).transfer(address(burner), depositAmount2);
 
         assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), depositAmount2);
-        assertEq(IERC20(METH).balanceOf(address(burner)), 0);
         nextRequestId = IUnstakeRequestsManagerWrite(UNSTAKE_REQUESTS_MANAGER).nextRequestId();
         assertEq(address(burner).balance, 0);
         requestsId = burner.triggerWithdrawal();
         assertEq(address(burner).balance, 0);
         assertEq(requestsId, nextRequestId);
         assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), 0);
-        assertEq(IERC20(METH).balanceOf(address(burner)), 0);
 
         assertEq(burner.requestIdsLength(), 2);
         requestsIds = burner.requestIds(0, type(uint256).max);

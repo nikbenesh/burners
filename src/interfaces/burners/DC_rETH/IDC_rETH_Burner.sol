@@ -2,8 +2,6 @@
 pragma solidity 0.8.25;
 
 interface IDC_rETH_Burner {
-    error InsufficientBurn();
-
     /**
      * @notice Emitted when a burn is triggered.
      * @param caller caller of the function
@@ -16,11 +14,6 @@ interface IDC_rETH_Burner {
      * @notice Get an address of the Default Collateral contract.
      */
     function COLLATERAL() external view returns (address);
-
-    /**
-     * @notice Get an address of the collateral's asset.
-     */
-    function ASSET() external view returns (address);
 
     /**
      * @notice Trigger a claim and a burn of ETH.

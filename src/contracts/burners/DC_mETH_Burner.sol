@@ -7,7 +7,6 @@ import {IDC_mETH_Burner} from "src/interfaces/burners/DC_mETH/IDC_mETH_Burner.so
 import {IStaking} from "src/interfaces/burners/DC_mETH/IStaking.sol";
 import {IMETH} from "src/interfaces/burners/DC_mETH/IMETH.sol";
 
-import {IDefaultCollateral} from "@symbiotic/collateral/interfaces/defaultCollateral/IDefaultCollateral.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
@@ -24,11 +23,6 @@ contract DC_mETH_Burner is IDC_mETH_Burner {
     /**
      * @inheritdoc IDC_mETH_Burner
      */
-    address public immutable ASSET;
-
-    /**
-     * @inheritdoc IDC_mETH_Burner
-     */
     address public immutable STAKING;
 
     EnumerableSet.UintSet private _requestIds;
@@ -36,11 +30,9 @@ contract DC_mETH_Burner is IDC_mETH_Burner {
     constructor(address collateral) {
         COLLATERAL = collateral;
 
-        ASSET = IDefaultCollateral(collateral).asset();
+        STAKING = IMETH(COLLATERAL).stakingContract();
 
-        STAKING = IMETH(ASSET).stakingContract();
-
-        IERC20(ASSET).approve(STAKING, type(uint256).max);
+        IERC20(COLLATERAL).approve(STAKING, type(uint256).max);
     }
 
     /**
@@ -71,7 +63,6 @@ contract DC_mETH_Burner is IDC_mETH_Burner {
      */
     function triggerWithdrawal() external returns (uint256 requestId) {
         uint256 amount = IERC20(COLLATERAL).balanceOf(address(this));
-        IDefaultCollateral(COLLATERAL).withdraw(address(this), amount);
 
         requestId = IStaking(STAKING).unstakeRequest(uint128(amount), uint128(IStaking(STAKING).mETHToETH(amount)));
 

@@ -24,11 +24,6 @@ interface IDC_sfrxETH_Burner {
     function COLLATERAL() external view returns (address);
 
     /**
-     * @notice Get an address of the collateral's asset.
-     */
-    function ASSET() external view returns (address);
-
-    /**
      * @notice Get an address of the Frax Ether Redemption queue.
      */
     function FRAX_ETHER_REDEMPTION_QUEUE() external view returns (address);

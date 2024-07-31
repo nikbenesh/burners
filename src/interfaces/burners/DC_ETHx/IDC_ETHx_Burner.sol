@@ -26,11 +26,6 @@ interface IDC_ETHx_Burner {
     function COLLATERAL() external view returns (address);
 
     /**
-     * @notice Get an address of the collateral's asset.
-     */
-    function ASSET() external view returns (address);
-
-    /**
      * @notice Get an address of the Stader Config contract.
      */
     function STADER_CONFIG() external view returns (address);

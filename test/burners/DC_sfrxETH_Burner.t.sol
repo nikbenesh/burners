@@ -10,7 +10,6 @@ import {IDC_sfrxETH_Burner} from "src/interfaces/burners/DC_sfrxETH/IDC_sfrxETH_
 
 import {IERC20} from "test/mocks/AaveV3Borrow.sol";
 
-import {IDefaultCollateral} from "@symbiotic/collateral/interfaces/defaultCollateral/IDefaultCollateral.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract DC_sfrxETH_BurnerTest is Test {
@@ -22,9 +21,8 @@ contract DC_sfrxETH_BurnerTest is Test {
 
     DC_sfrxETH_Burner burner;
 
-    address public constant COLLATERAL = 0x5198CB44D7B2E993ebDDa9cAd3b9a0eAa32769D2;
+    address public constant COLLATERAL = 0xac3E018457B222d93114458476f3E3416Abbe38F;
     address public constant FRXETH = 0x5E8422345238F34275888049021821E8E08CAa1f;
-    address public constant SFRXETH = 0xac3E018457B222d93114458476f3E3416Abbe38F;
     address public constant FRAX_ETHER_REDEMPTION_QUEUE = 0x82bA8da44Cd5261762e629dd5c605b17715727bd;
     address public constant FRXETH_MINTER = 0xbAFA44EFE7901E04E39Dad13167D089C559c1138;
 
@@ -36,22 +34,14 @@ contract DC_sfrxETH_BurnerTest is Test {
         (alice, alicePrivateKey) = makeAddrAndKey("alice");
         (bob, bobPrivateKey) = makeAddrAndKey("bob");
 
-        IERC20(SFRXETH).approve(COLLATERAL, type(uint256).max);
-
         vm.deal(address(this), 1_000_000 ether);
-
-        vm.startPrank(IDefaultCollateral(COLLATERAL).limitIncreaser());
-        IDefaultCollateral(COLLATERAL).increaseLimit(100_000_000 ether);
-        vm.stopPrank();
 
         vm.startPrank(FRXETH_MINTER);
         IFrxETH(FRXETH).minter_mint(address(this), 500_000 ether);
         vm.stopPrank();
 
-        IERC20(FRXETH).approve(SFRXETH, type(uint256).max);
-        ISfrxETH(SFRXETH).deposit(500_000 ether, address(this));
-
-        IDefaultCollateral(COLLATERAL).deposit(address(this), 400_000 ether);
+        IERC20(FRXETH).approve(COLLATERAL, type(uint256).max);
+        ISfrxETH(COLLATERAL).deposit(500_000 ether, address(this));
     }
 
     function test_Create() public {
@@ -59,9 +49,8 @@ contract DC_sfrxETH_BurnerTest is Test {
         vm.deal(address(burner), 0);
 
         assertEq(burner.COLLATERAL(), COLLATERAL);
-        assertEq(burner.ASSET(), SFRXETH);
         assertEq(burner.FRAX_ETHER_REDEMPTION_QUEUE(), FRAX_ETHER_REDEMPTION_QUEUE);
-        assertEq(IERC20(SFRXETH).allowance(address(burner), FRAX_ETHER_REDEMPTION_QUEUE), type(uint256).max);
+        assertEq(IERC20(COLLATERAL).allowance(address(burner), FRAX_ETHER_REDEMPTION_QUEUE), type(uint256).max);
     }
 
     function test_TriggerWithdrawal(uint256 depositAmount1, uint256 depositAmount2) public {
@@ -74,14 +63,12 @@ contract DC_sfrxETH_BurnerTest is Test {
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
         assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), depositAmount1);
-        assertEq(IERC20(SFRXETH).balanceOf(address(burner)), 0);
         (uint256 nextRequestId,,,) = IFraxEtherRedemptionQueue(FRAX_ETHER_REDEMPTION_QUEUE).redemptionQueueState();
         assertEq(address(burner).balance, 0);
         uint256 requestsId = burner.triggerWithdrawal();
         assertEq(address(burner).balance, 0);
         assertEq(requestsId, nextRequestId);
         assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), 0);
-        assertEq(IERC20(SFRXETH).balanceOf(address(burner)), 0);
 
         assertEq(burner.requestIdsLength(), 1);
         uint256[] memory requestsIds = burner.requestIds(0, type(uint256).max);
@@ -98,14 +85,12 @@ contract DC_sfrxETH_BurnerTest is Test {
         IERC20(COLLATERAL).transfer(address(burner), depositAmount2);
 
         assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), depositAmount2);
-        assertEq(IERC20(SFRXETH).balanceOf(address(burner)), 0);
         (nextRequestId,,,) = IFraxEtherRedemptionQueue(FRAX_ETHER_REDEMPTION_QUEUE).redemptionQueueState();
         assertEq(address(burner).balance, 0);
         requestsId = burner.triggerWithdrawal();
         assertEq(address(burner).balance, 0);
         assertEq(requestsId, nextRequestId);
         assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), 0);
-        assertEq(IERC20(SFRXETH).balanceOf(address(burner)), 0);
 
         assertEq(burner.requestIdsLength(), 2);
         requestsIds = burner.requestIds(0, type(uint256).max);

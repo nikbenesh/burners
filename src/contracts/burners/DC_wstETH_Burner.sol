@@ -7,7 +7,6 @@ import {IDC_wstETH_Burner} from "src/interfaces/burners/DC_wstETH/IDC_wstETH_Bur
 import {IWithdrawalQueue} from "src/interfaces/burners/DC_wstETH/IWithdrawalQueue.sol";
 import {IWstETH} from "src/interfaces/burners/DC_wstETH/IWstETH.sol";
 
-import {IDefaultCollateral} from "@symbiotic/collateral/interfaces/defaultCollateral/IDefaultCollateral.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
@@ -20,11 +19,6 @@ contract DC_wstETH_Burner is IDC_wstETH_Burner {
      * @inheritdoc IDC_wstETH_Burner
      */
     address public immutable COLLATERAL;
-
-    /**
-     * @inheritdoc IDC_wstETH_Burner
-     */
-    address public immutable ASSET;
 
     /**
      * @inheritdoc IDC_wstETH_Burner
@@ -50,8 +44,6 @@ contract DC_wstETH_Burner is IDC_wstETH_Burner {
 
     constructor(address collateral, address lidoWithdrawalQueue) {
         COLLATERAL = collateral;
-
-        ASSET = IDefaultCollateral(collateral).asset();
 
         LIDO_WITHDRAWAL_QUEUE = lidoWithdrawalQueue;
 
@@ -89,9 +81,7 @@ contract DC_wstETH_Burner is IDC_wstETH_Burner {
      * @inheritdoc IDC_wstETH_Burner
      */
     function triggerWithdrawal(uint256 maxRequests) external returns (uint256[] memory requestIds_) {
-        uint256 wstETHAmount = IERC20(COLLATERAL).balanceOf(address(this));
-        IDefaultCollateral(COLLATERAL).withdraw(address(this), wstETHAmount);
-        IWstETH(ASSET).unwrap(wstETHAmount);
+        IWstETH(COLLATERAL).unwrap(IERC20(COLLATERAL).balanceOf(address(this)));
         uint256 stETHAmount = IERC20(STETH).balanceOf(address(this));
 
         uint256 requests = stETHAmount / MAX_STETH_WITHDRAWAL_AMOUNT;

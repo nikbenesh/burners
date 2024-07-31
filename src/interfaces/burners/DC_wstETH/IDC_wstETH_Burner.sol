@@ -32,11 +32,6 @@ interface IDC_wstETH_Burner {
     function COLLATERAL() external view returns (address);
 
     /**
-     * @notice Get an address of the collateral's asset.
-     */
-    function ASSET() external view returns (address);
-
-    /**
      * @notice Get an address of the stETH token.
      */
     function STETH() external view returns (address);

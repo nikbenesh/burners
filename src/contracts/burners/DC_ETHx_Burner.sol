@@ -8,7 +8,6 @@ import {IStaderStakePoolsManager} from "src/interfaces/burners/DC_ETHx/IStaderSt
 import {IUserWithdrawalManager} from "src/interfaces/burners/DC_ETHx/IUserWithdrawalManager.sol";
 import {IStaderConfig} from "src/interfaces/burners/DC_ETHx/IStaderConfig.sol";
 
-import {IDefaultCollateral} from "@symbiotic/collateral/interfaces/defaultCollateral/IDefaultCollateral.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
@@ -21,11 +20,6 @@ contract DC_ETHx_Burner is IDC_ETHx_Burner {
      * @inheritdoc IDC_ETHx_Burner
      */
     address public immutable COLLATERAL;
-
-    /**
-     * @inheritdoc IDC_ETHx_Burner
-     */
-    address public immutable ASSET;
 
     /**
      * @inheritdoc IDC_ETHx_Burner
@@ -47,13 +41,11 @@ contract DC_ETHx_Burner is IDC_ETHx_Burner {
     constructor(address collateral, address staderConfig) {
         COLLATERAL = collateral;
 
-        ASSET = IDefaultCollateral(collateral).asset();
-
         STADER_CONFIG = staderConfig;
         USER_WITHDRAW_MANAGER = IStaderConfig(STADER_CONFIG).getUserWithdrawManager();
         STAKE_POOLS_MANAGER = IStaderConfig(STADER_CONFIG).getStakePoolManager();
 
-        IERC20(ASSET).approve(USER_WITHDRAW_MANAGER, type(uint256).max);
+        IERC20(COLLATERAL).approve(USER_WITHDRAW_MANAGER, type(uint256).max);
     }
 
     /**
@@ -83,8 +75,7 @@ contract DC_ETHx_Burner is IDC_ETHx_Burner {
      * @inheritdoc IDC_ETHx_Burner
      */
     function triggerWithdrawal(uint256 maxRequests) external returns (uint256 firstRequestId, uint256 lastRequestId) {
-        IDefaultCollateral(COLLATERAL).withdraw(address(this), IERC20(COLLATERAL).balanceOf(address(this)));
-        uint256 amount = IERC20(ASSET).balanceOf(address(this));
+        uint256 amount = IERC20(COLLATERAL).balanceOf(address(this));
 
         uint256 maxWithdrawalAmount = IStaderStakePoolsManager(STAKE_POOLS_MANAGER).previewDeposit(
             IStaderConfig(STADER_CONFIG).getMaxWithdrawAmount()

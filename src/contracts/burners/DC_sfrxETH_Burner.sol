@@ -6,7 +6,6 @@ import {SelfDestruct} from "src/contracts/SelfDestruct.sol";
 import {IDC_sfrxETH_Burner} from "src/interfaces/burners/DC_sfrxETH/IDC_sfrxETH_Burner.sol";
 import {IFraxEtherRedemptionQueue} from "src/interfaces/burners/DC_sfrxETH/IFraxEtherRedemptionQueue.sol";
 
-import {IDefaultCollateral} from "@symbiotic/collateral/interfaces/defaultCollateral/IDefaultCollateral.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
@@ -24,11 +23,6 @@ contract DC_sfrxETH_Burner is IDC_sfrxETH_Burner, IERC721Receiver {
     /**
      * @inheritdoc IDC_sfrxETH_Burner
      */
-    address public immutable ASSET;
-
-    /**
-     * @inheritdoc IDC_sfrxETH_Burner
-     */
     address public immutable FRAX_ETHER_REDEMPTION_QUEUE;
 
     EnumerableSet.UintSet private _requestIds;
@@ -36,11 +30,9 @@ contract DC_sfrxETH_Burner is IDC_sfrxETH_Burner, IERC721Receiver {
     constructor(address collateral, address fraxEtherRedemptionQueue) {
         COLLATERAL = collateral;
 
-        ASSET = IDefaultCollateral(collateral).asset();
-
         FRAX_ETHER_REDEMPTION_QUEUE = fraxEtherRedemptionQueue;
 
-        IERC20(ASSET).approve(FRAX_ETHER_REDEMPTION_QUEUE, type(uint256).max);
+        IERC20(COLLATERAL).approve(FRAX_ETHER_REDEMPTION_QUEUE, type(uint256).max);
     }
 
     /**
@@ -71,7 +63,6 @@ contract DC_sfrxETH_Burner is IDC_sfrxETH_Burner, IERC721Receiver {
      */
     function triggerWithdrawal() external returns (uint256 requestId) {
         uint256 amount = IERC20(COLLATERAL).balanceOf(address(this));
-        IDefaultCollateral(COLLATERAL).withdraw(address(this), amount);
 
         requestId = IFraxEtherRedemptionQueue(FRAX_ETHER_REDEMPTION_QUEUE).enterRedemptionQueueViaSfrxEth(
             address(this), uint120(amount)

@@ -24,11 +24,6 @@ interface IDC_mETH_Burner {
     function COLLATERAL() external view returns (address);
 
     /**
-     * @notice Get an address of the collateral's asset.
-     */
-    function ASSET() external view returns (address);
-
-    /**
      * @notice Get an address of the Mantle Staking contract.
      */
     function STAKING() external view returns (address);

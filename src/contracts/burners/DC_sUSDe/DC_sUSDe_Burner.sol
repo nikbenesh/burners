@@ -7,7 +7,6 @@ import {IDC_sUSDe_Burner} from "src/interfaces/burners/DC_sUSDe/IDC_sUSDe_Burner
 import {ISUSDe} from "src/interfaces/burners/DC_sUSDe/ISUSDe.sol";
 import {IUSDe} from "src/interfaces/burners/DC_sUSDe/IUSDe.sol";
 
-import {IDefaultCollateral} from "@symbiotic/collateral/interfaces/defaultCollateral/IDefaultCollateral.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
@@ -28,11 +27,6 @@ contract DC_sUSDe_Burner is IDC_sUSDe_Burner {
     /**
      * @inheritdoc IDC_sUSDe_Burner
      */
-    address public immutable ASSET;
-
-    /**
-     * @inheritdoc IDC_sUSDe_Burner
-     */
     address public immutable USDE;
 
     address private immutable _MINIBURNER_IMPLEMENTATION;
@@ -42,8 +36,7 @@ contract DC_sUSDe_Burner is IDC_sUSDe_Burner {
     constructor(address collateral, address implementation) {
         COLLATERAL = collateral;
 
-        ASSET = IDefaultCollateral(collateral).asset();
-        USDE = ISUSDe(ASSET).asset();
+        USDE = ISUSDe(COLLATERAL).asset();
 
         _MINIBURNER_IMPLEMENTATION = implementation;
     }
@@ -75,14 +68,14 @@ contract DC_sUSDe_Burner is IDC_sUSDe_Burner {
      * @inheritdoc IDC_sUSDe_Burner
      */
     function triggerWithdrawal() external returns (address requestId) {
-        if (ISUSDe(ASSET).cooldownDuration() == 0) {
+        if (ISUSDe(COLLATERAL).cooldownDuration() == 0) {
             revert NoCooldown();
         }
 
         requestId = _MINIBURNER_IMPLEMENTATION.clone();
 
         uint256 amount = IERC20(COLLATERAL).balanceOf(address(this));
-        IDefaultCollateral(COLLATERAL).withdraw(requestId, amount);
+        IERC20(COLLATERAL).transfer(requestId, amount);
 
         DC_sUSDe_Miniburner(requestId).initialize(amount);
 
@@ -108,14 +101,13 @@ contract DC_sUSDe_Burner is IDC_sUSDe_Burner {
      * @inheritdoc IDC_sUSDe_Burner
      */
     function triggerInstantBurn() external {
-        if (ISUSDe(ASSET).cooldownDuration() != 0) {
+        if (ISUSDe(COLLATERAL).cooldownDuration() != 0) {
             revert HasCooldown();
         }
 
         uint256 amount = IERC20(COLLATERAL).balanceOf(address(this));
-        IDefaultCollateral(COLLATERAL).withdraw(address(this), amount);
 
-        IUSDe(USDE).burn(ISUSDe(ASSET).redeem(amount, address(this), address(this)));
+        IUSDe(USDE).burn(ISUSDe(COLLATERAL).redeem(amount, address(this), address(this)));
 
         emit TriggerInstantBurn(msg.sender, amount);
     }

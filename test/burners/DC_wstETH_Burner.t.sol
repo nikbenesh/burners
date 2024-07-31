@@ -11,7 +11,6 @@ import {IDC_wstETH_Burner} from "src/interfaces/burners/DC_wstETH/IDC_wstETH_Bur
 
 import {AaveV3Borrow, IERC20, IWETH} from "test/mocks/AaveV3Borrow.sol";
 
-import {IDefaultCollateral} from "@symbiotic/collateral/interfaces/defaultCollateral/IDefaultCollateral.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
@@ -29,10 +28,9 @@ contract DC_wstETH_BurnerTest is Test {
 
     DC_wstETH_Burner burner;
 
-    address public constant COLLATERAL = 0xC329400492c6ff2438472D4651Ad17389fCb843a;
+    address public constant COLLATERAL = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
     address public constant LIDO_WITHDRAWAL_QUEUE = 0x889edC2eDab5f40e902b864aD4d7AdE8E412F9B1;
     address public constant STETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
-    address public constant WSTETH = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
 
     uint256 public constant MIN_STETH_WITHDRAWAL_AMOUNT = 100;
     uint256 public constant MAX_STETH_WITHDRAWAL_AMOUNT = 1000 ether;
@@ -48,18 +46,10 @@ contract DC_wstETH_BurnerTest is Test {
         aave = new AaveV3Borrow();
         weth.approve(address(aave), type(uint256).max);
 
-        IERC20(WSTETH).approve(COLLATERAL, type(uint256).max);
-
         vm.deal(address(this), 500_000 ether);
         weth.deposit{value: 500_000 ether}();
         uint256 amountOut = 15_000 ether;
-        aave.supplyAndBorrow(WETH, 500_000 ether, WSTETH, amountOut);
-
-        vm.startPrank(IDefaultCollateral(COLLATERAL).limitIncreaser());
-        IDefaultCollateral(COLLATERAL).increaseLimit(100_000_000 ether);
-        vm.stopPrank();
-
-        IDefaultCollateral(COLLATERAL).deposit(address(this), amountOut);
+        aave.supplyAndBorrow(WETH, 500_000 ether, COLLATERAL, amountOut);
     }
 
     function test_Create() public {
@@ -67,7 +57,6 @@ contract DC_wstETH_BurnerTest is Test {
         vm.deal(address(burner), 0);
 
         assertEq(burner.COLLATERAL(), COLLATERAL);
-        assertEq(burner.ASSET(), WSTETH);
         assertEq(burner.LIDO_WITHDRAWAL_QUEUE(), LIDO_WITHDRAWAL_QUEUE);
         assertEq(burner.STETH(), STETH);
         assertEq(burner.MIN_STETH_WITHDRAWAL_AMOUNT(), MIN_STETH_WITHDRAWAL_AMOUNT);
@@ -88,7 +77,7 @@ contract DC_wstETH_BurnerTest is Test {
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
         uint256 lastRequestId = IWithdrawalQueue(LIDO_WITHDRAWAL_QUEUE).getLastRequestId();
-        uint256 stETHAmount1 = IWstETH(WSTETH).getStETHByWstETH(depositAmount1);
+        uint256 stETHAmount1 = IWstETH(COLLATERAL).getStETHByWstETH(depositAmount1);
         vm.assume(stETHAmount1 >= 101);
         assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), depositAmount1);
         uint256[] memory requestsIds = burner.triggerWithdrawal(maxRequests);
@@ -144,7 +133,7 @@ contract DC_wstETH_BurnerTest is Test {
         if (depositAmount1 + depositAmount2 <= initCollateralBalance) {
             IERC20(COLLATERAL).transfer(address(burner), depositAmount2);
 
-            uint256 stETHAmount2 = IWstETH(WSTETH).getStETHByWstETH(depositAmount2);
+            uint256 stETHAmount2 = IWstETH(COLLATERAL).getStETHByWstETH(depositAmount2);
             vm.assume(stETHAmount2 + (stETHAmount1 - withdrawal1) >= MIN_STETH_WITHDRAWAL_AMOUNT);
             assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), depositAmount2);
             requestsIds = burner.triggerWithdrawal(maxRequests);
@@ -211,7 +200,7 @@ contract DC_wstETH_BurnerTest is Test {
 
     function test_TriggerWithdrawalRevertInsufficientWithdrawal(uint256 depositAmount1) public {
         depositAmount1 = bound(depositAmount1, 1, MIN_STETH_WITHDRAWAL_AMOUNT);
-        uint256 stETHAmount1 = IWstETH(WSTETH).getStETHByWstETH(depositAmount1);
+        uint256 stETHAmount1 = IWstETH(COLLATERAL).getStETHByWstETH(depositAmount1);
         vm.assume(stETHAmount1 < MIN_STETH_WITHDRAWAL_AMOUNT);
 
         burner = new DC_wstETH_Burner(COLLATERAL, LIDO_WITHDRAWAL_QUEUE);
@@ -234,7 +223,7 @@ contract DC_wstETH_BurnerTest is Test {
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
-        uint256 stETHAmount1 = IWstETH(WSTETH).getStETHByWstETH(depositAmount1);
+        uint256 stETHAmount1 = IWstETH(COLLATERAL).getStETHByWstETH(depositAmount1);
         vm.assume(stETHAmount1 >= 101);
         uint256[] memory requestsIds = burner.triggerWithdrawal(type(uint256).max);
 
@@ -262,7 +251,7 @@ contract DC_wstETH_BurnerTest is Test {
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
-        uint256 stETHAmount1 = IWstETH(WSTETH).getStETHByWstETH(depositAmount1);
+        uint256 stETHAmount1 = IWstETH(COLLATERAL).getStETHByWstETH(depositAmount1);
         vm.assume(stETHAmount1 >= 101);
         uint256[] memory requestsIds = burner.triggerWithdrawal(type(uint256).max);
 
@@ -283,7 +272,7 @@ contract DC_wstETH_BurnerTest is Test {
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
-        uint256 stETHAmount1 = IWstETH(WSTETH).getStETHByWstETH(depositAmount1);
+        uint256 stETHAmount1 = IWstETH(COLLATERAL).getStETHByWstETH(depositAmount1);
         vm.assume(stETHAmount1 >= 101);
         uint256[] memory requestsIds = burner.triggerWithdrawal(type(uint256).max);
 
@@ -315,7 +304,7 @@ contract DC_wstETH_BurnerTest is Test {
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
-        uint256 stETHAmount1 = IWstETH(WSTETH).getStETHByWstETH(depositAmount1);
+        uint256 stETHAmount1 = IWstETH(COLLATERAL).getStETHByWstETH(depositAmount1);
         vm.assume(stETHAmount1 >= 101);
         uint256[] memory requestsIds = burner.triggerWithdrawal(type(uint256).max);
 

@@ -33,11 +33,6 @@ interface IDC_sUSDe_Burner {
     function COLLATERAL() external view returns (address);
 
     /**
-     * @notice Get an address of the collateral's asset.
-     */
-    function ASSET() external view returns (address);
-
-    /**
      * @notice Get an address of the USDe contract.
      */
     function USDE() external view returns (address);

@@ -26,11 +26,6 @@ interface IDC_swETH_Burner {
     function COLLATERAL() external view returns (address);
 
     /**
-     * @notice Get an address of the collateral's asset.
-     */
-    function ASSET() external view returns (address);
-
-    /**
      * @notice Get an address of the Swell Exit contract.
      */
     function SWEXIT() external view returns (address);

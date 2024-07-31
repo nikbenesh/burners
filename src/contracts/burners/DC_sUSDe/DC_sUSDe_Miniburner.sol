@@ -10,25 +10,25 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract DC_sUSDe_Miniburner is OwnableUpgradeable {
     address private constant _DEAD = address(0xdEaD);
 
-    address private immutable _ASSET;
+    address private immutable _COLLATERAL;
 
     address private immutable _USDE;
 
-    constructor(address asset) {
+    constructor(address collateral) {
         _disableInitializers();
 
-        _ASSET = asset;
-        _USDE = ISUSDe(asset).asset();
+        _COLLATERAL = collateral;
+        _USDE = ISUSDe(collateral).asset();
     }
 
     function initialize(uint256 amount) external initializer {
         __Ownable_init(msg.sender);
 
-        ISUSDe(_ASSET).cooldownShares(amount);
+        ISUSDe(_COLLATERAL).cooldownShares(amount);
     }
 
     function triggerBurn() external onlyOwner {
-        ISUSDe(_ASSET).unstake(address(this));
+        ISUSDe(_COLLATERAL).unstake(address(this));
         IUSDe(_USDE).burn(IERC20(_USDE).balanceOf(address(this)));
     }
 }

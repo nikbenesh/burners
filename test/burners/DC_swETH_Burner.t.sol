@@ -11,7 +11,6 @@ import {IDC_swETH_Burner} from "src/interfaces/burners/DC_swETH/IDC_swETH_Burner
 
 import {IERC20, IWETH} from "test/mocks/AaveV3Borrow.sol";
 
-import {IDefaultCollateral} from "@symbiotic/collateral/interfaces/defaultCollateral/IDefaultCollateral.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
@@ -27,9 +26,8 @@ contract DC_swETH_BurnerTest is Test {
 
     DC_swETH_Burner burner;
 
-    address public constant COLLATERAL = 0x38B86004842D3FA4596f0b7A0b53DE90745Ab654;
+    address public constant COLLATERAL = 0xf951E335afb289353dc249e82926178EaC7DEd78;
     address public constant SWEXIT = 0x48C11b86807627AF70a34662D4865cF854251663;
-    address public constant SWETH = 0xf951E335afb289353dc249e82926178EaC7DEd78;
     address public constant REPRICING_ORACLE = 0x289d600447A74B952AD16F0BD53b8eaAac2d2D71;
 
     uint256 public withdrawRequestMaximum;
@@ -43,17 +41,9 @@ contract DC_swETH_BurnerTest is Test {
         (alice, alicePrivateKey) = makeAddrAndKey("alice");
         (bob, bobPrivateKey) = makeAddrAndKey("bob");
 
-        IERC20(SWETH).approve(COLLATERAL, type(uint256).max);
-
         vm.deal(address(this), 1_000_000 ether);
 
-        ISwETH(SWETH).deposit{value: 500_000 ether}();
-
-        vm.startPrank(IDefaultCollateral(COLLATERAL).limitIncreaser());
-        IDefaultCollateral(COLLATERAL).increaseLimit(100_000_000 ether);
-        vm.stopPrank();
-
-        IDefaultCollateral(COLLATERAL).deposit(address(this), 100_000 ether);
+        ISwETH(COLLATERAL).deposit{value: 500_000 ether}();
 
         withdrawRequestMaximum = ISwEXIT(SWEXIT).withdrawRequestMaximum();
         withdrawRequestMinimum = ISwEXIT(SWEXIT).withdrawRequestMinimum();
@@ -64,9 +54,8 @@ contract DC_swETH_BurnerTest is Test {
         vm.deal(address(burner), 0);
 
         assertEq(burner.COLLATERAL(), COLLATERAL);
-        assertEq(burner.ASSET(), SWETH);
         assertEq(burner.SWEXIT(), SWEXIT);
-        assertEq(IERC20(SWETH).allowance(address(burner), SWEXIT), type(uint256).max);
+        assertEq(IERC20(COLLATERAL).allowance(address(burner), SWEXIT), type(uint256).max);
     }
 
     struct TempStruct {
@@ -91,7 +80,6 @@ contract DC_swETH_BurnerTest is Test {
 
         assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), depositAmount1);
         (uint256 firstRequestId, uint256 lastRequestId) = burner.triggerWithdrawal(maxRequests);
-        assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), 0);
 
         uint256 N1 = depositAmount1 / withdrawRequestMaximum;
         if (depositAmount1 % withdrawRequestMaximum >= withdrawRequestMinimum) {
@@ -111,7 +99,7 @@ contract DC_swETH_BurnerTest is Test {
             }
         }
 
-        assertEq(IERC20(SWETH).balanceOf(address(burner)), depositAmount1 - withdrawal1);
+        assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), depositAmount1 - withdrawal1);
 
         assertEq(firstRequestId, temp.lastRequestId_ + 1);
         assertEq(lastRequestId, temp.lastRequestId_ + N1);
@@ -141,9 +129,8 @@ contract DC_swETH_BurnerTest is Test {
         if (depositAmount1 + depositAmount2 <= temp.initCollateralBalance) {
             IERC20(COLLATERAL).transfer(address(burner), depositAmount2);
 
-            assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), depositAmount2);
+            assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), depositAmount2 + (depositAmount1 - withdrawal1));
             (firstRequestId, lastRequestId) = burner.triggerWithdrawal(maxRequests);
-            assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), 0);
 
             uint256 N2 = (depositAmount2 + (depositAmount1 - withdrawal1)) / withdrawRequestMaximum;
             if ((depositAmount2 + (depositAmount1 - withdrawal1)) % withdrawRequestMaximum >= withdrawRequestMinimum) {
@@ -166,7 +153,8 @@ contract DC_swETH_BurnerTest is Test {
             }
 
             assertEq(
-                IERC20(SWETH).balanceOf(address(burner)), (depositAmount1 - withdrawal1) + depositAmount2 - withdrawal2
+                IERC20(COLLATERAL).balanceOf(address(burner)),
+                (depositAmount1 - withdrawal1) + depositAmount2 - withdrawal2
             );
 
             assertEq(firstRequestId, temp.lastRequestId_ + N1 + 1);

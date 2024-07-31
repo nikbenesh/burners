@@ -12,7 +12,6 @@ import {IUserWithdrawalManager} from "src/interfaces/burners/DC_ETHx/IUserWithdr
 
 import {IERC20, IWETH} from "test/mocks/AaveV3Borrow.sol";
 
-import {IDefaultCollateral} from "@symbiotic/collateral/interfaces/defaultCollateral/IDefaultCollateral.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
@@ -28,8 +27,7 @@ contract DC_ETHx_BurnerTest is Test {
 
     DC_ETHx_Burner burner;
 
-    address public constant COLLATERAL = 0xBdea8e677F9f7C294A4556005c640Ee505bE6925;
-    address public constant ETHX = 0xA35b1B31Ce002FBF2058D22F30f95D405200A15b;
+    address public constant COLLATERAL = 0xA35b1B31Ce002FBF2058D22F30f95D405200A15b;
     address public constant STADER_CONFIG = 0x4ABEF2263d5A5ED582FC9A9789a41D85b68d69DB;
     address public constant STAKE_POOLS_MANAGER = 0xcf5EA1b38380f6aF39068375516Daf40Ed70D299;
     address public constant USER_WITHDRAW_MANAGER = 0x9F0491B32DBce587c50c4C43AB303b06478193A7;
@@ -46,19 +44,11 @@ contract DC_ETHx_BurnerTest is Test {
         (alice, alicePrivateKey) = makeAddrAndKey("alice");
         (bob, bobPrivateKey) = makeAddrAndKey("bob");
 
-        IERC20(ETHX).approve(COLLATERAL, type(uint256).max);
-
         vm.deal(address(this), 1_000_000 ether);
 
         vm.startPrank(STAKE_POOLS_MANAGER);
-        IETHx(ETHX).mint(address(this), 500_000 ether);
+        IETHx(COLLATERAL).mint(address(this), 500_000 ether);
         vm.stopPrank();
-
-        vm.startPrank(IDefaultCollateral(COLLATERAL).limitIncreaser());
-        IDefaultCollateral(COLLATERAL).increaseLimit(100_000_000 ether);
-        vm.stopPrank();
-
-        IDefaultCollateral(COLLATERAL).deposit(address(this), 100_000 ether);
 
         withdrawRequestMaximum = IStaderStakePoolsManager(STAKE_POOLS_MANAGER).previewDeposit(
             IStaderConfig(STADER_CONFIG).getMaxWithdrawAmount()
@@ -73,11 +63,10 @@ contract DC_ETHx_BurnerTest is Test {
         vm.deal(address(burner), 0);
 
         assertEq(burner.COLLATERAL(), COLLATERAL);
-        assertEq(burner.ASSET(), ETHX);
         assertEq(burner.STADER_CONFIG(), STADER_CONFIG);
         assertEq(burner.USER_WITHDRAW_MANAGER(), USER_WITHDRAW_MANAGER);
         assertEq(burner.STAKE_POOLS_MANAGER(), STAKE_POOLS_MANAGER);
-        assertEq(IERC20(ETHX).allowance(address(burner), USER_WITHDRAW_MANAGER), type(uint256).max);
+        assertEq(IERC20(COLLATERAL).allowance(address(burner), USER_WITHDRAW_MANAGER), type(uint256).max);
     }
 
     struct TempStruct {
@@ -104,9 +93,8 @@ contract DC_ETHx_BurnerTest is Test {
             IStaderStakePoolsManager(STAKE_POOLS_MANAGER).previewWithdraw(depositAmount1)
                 >= IStaderConfig(STADER_CONFIG).getMinWithdrawAmount()
         );
-        assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), depositAmount1);
+
         (uint256 firstRequestId, uint256 lastRequestId) = burner.triggerWithdrawal(maxRequests);
-        assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), 0);
 
         uint256 N1 = depositAmount1 / withdrawRequestMaximum;
         if (depositAmount1 % withdrawRequestMaximum >= withdrawRequestMinimum) {
@@ -126,7 +114,7 @@ contract DC_ETHx_BurnerTest is Test {
             }
         }
 
-        assertEq(IERC20(ETHX).balanceOf(address(burner)), depositAmount1 - withdrawal1);
+        assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), depositAmount1 - withdrawal1);
 
         assertEq(firstRequestId, temp.firstRequestId_);
         assertEq(lastRequestId, temp.firstRequestId_ + N1 - 1);
@@ -160,9 +148,8 @@ contract DC_ETHx_BurnerTest is Test {
                     depositAmount2 + (depositAmount1 - withdrawal1)
                 ) >= IStaderConfig(STADER_CONFIG).getMinWithdrawAmount()
             );
-            assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), depositAmount2);
+
             (firstRequestId, lastRequestId) = burner.triggerWithdrawal(maxRequests);
-            assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), 0);
 
             uint256 N2 = (depositAmount2 + (depositAmount1 - withdrawal1)) / withdrawRequestMaximum;
             if ((depositAmount2 + (depositAmount1 - withdrawal1)) % withdrawRequestMaximum >= withdrawRequestMinimum) {
@@ -185,7 +172,8 @@ contract DC_ETHx_BurnerTest is Test {
             }
 
             assertEq(
-                IERC20(ETHX).balanceOf(address(burner)), (depositAmount1 - withdrawal1) + depositAmount2 - withdrawal2
+                IERC20(COLLATERAL).balanceOf(address(burner)),
+                (depositAmount1 - withdrawal1) + depositAmount2 - withdrawal2
             );
 
             assertEq(firstRequestId, temp.firstRequestId_ + N1);
