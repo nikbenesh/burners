@@ -3,7 +3,7 @@ pragma solidity 0.8.25;
 
 import {IUintRequests} from "src/interfaces/IUintRequests.sol";
 
-interface IDC_wstETH_Burner is IUintRequests {
+interface IwstETH_Burner is IUintRequests {
     error InsufficientWithdrawal();
 
     /**

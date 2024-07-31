@@ -4,20 +4,20 @@ pragma solidity 0.8.25;
 import {SelfDestruct} from "src/contracts/SelfDestruct.sol";
 import {UintRequests} from "src/contracts/UintRequests.sol";
 
-import {IDC_mETH_Burner} from "src/interfaces/burners/DC_mETH/IDC_mETH_Burner.sol";
-import {IStaking} from "src/interfaces/burners/DC_mETH/IStaking.sol";
-import {IMETH} from "src/interfaces/burners/DC_mETH/IMETH.sol";
+import {ImETH_Burner} from "src/interfaces/burners/mETH/ImETH_Burner.sol";
+import {IStaking} from "src/interfaces/burners/mETH/IStaking.sol";
+import {IMETH} from "src/interfaces/burners/mETH/IMETH.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract DC_mETH_Burner is UintRequests, IDC_mETH_Burner {
+contract mETH_Burner is UintRequests, ImETH_Burner {
     /**
-     * @inheritdoc IDC_mETH_Burner
+     * @inheritdoc ImETH_Burner
      */
     address public immutable COLLATERAL;
 
     /**
-     * @inheritdoc IDC_mETH_Burner
+     * @inheritdoc ImETH_Burner
      */
     address public immutable STAKING;
 
@@ -30,7 +30,7 @@ contract DC_mETH_Burner is UintRequests, IDC_mETH_Burner {
     }
 
     /**
-     * @inheritdoc IDC_mETH_Burner
+     * @inheritdoc ImETH_Burner
      */
     function triggerWithdrawal() external returns (uint256 requestId) {
         uint256 amount = IERC20(COLLATERAL).balanceOf(address(this));
@@ -43,7 +43,7 @@ contract DC_mETH_Burner is UintRequests, IDC_mETH_Burner {
     }
 
     /**
-     * @inheritdoc IDC_mETH_Burner
+     * @inheritdoc ImETH_Burner
      */
     function triggerBurn(uint256 requestId) external {
         _removeRequestId(requestId);

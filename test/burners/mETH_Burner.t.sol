@@ -3,25 +3,25 @@ pragma solidity 0.8.25;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {DC_mETH_Burner} from "src/contracts/burners/DC_mETH_Burner.sol";
+import {mETH_Burner} from "src/contracts/burners/mETH_Burner.sol";
 
-import {IStaking} from "src/interfaces/burners/DC_mETH/IStaking.sol";
-import {IMETH} from "src/interfaces/burners/DC_mETH/IMETH.sol";
-import {IDC_mETH_Burner} from "src/interfaces/burners/DC_mETH/IDC_mETH_Burner.sol";
+import {IStaking} from "src/interfaces/burners/mETH/IStaking.sol";
+import {IMETH} from "src/interfaces/burners/mETH/IMETH.sol";
+import {ImETH_Burner} from "src/interfaces/burners/mETH/ImETH_Burner.sol";
 import {IUintRequests} from "src/interfaces/IUintRequests.sol";
 
 import {IERC20} from "test/mocks/AaveV3Borrow.sol";
 
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
-contract DC_mETH_BurnerTest is Test {
+contract mETH_BurnerTest is Test {
     address owner;
     address alice;
     uint256 alicePrivateKey;
     address bob;
     uint256 bobPrivateKey;
 
-    DC_mETH_Burner burner;
+    mETH_Burner burner;
 
     address public constant COLLATERAL = 0xd5F7838F5C461fefF7FE49ea5ebaF7728bB0ADfa;
     address public constant STAKING = 0xe3cBd06D7dadB3F4e6557bAb7EdD924CD1489E8f;
@@ -46,7 +46,7 @@ contract DC_mETH_BurnerTest is Test {
     }
 
     function test_Create() public {
-        burner = new DC_mETH_Burner(COLLATERAL);
+        burner = new mETH_Burner(COLLATERAL);
         vm.deal(address(burner), 0);
 
         assertEq(burner.COLLATERAL(), COLLATERAL);
@@ -58,7 +58,7 @@ contract DC_mETH_BurnerTest is Test {
         depositAmount1 = bound(depositAmount1, IStaking(STAKING).minimumUnstakeBound(), 10_000 ether);
         depositAmount2 = bound(depositAmount2, IStaking(STAKING).minimumUnstakeBound(), 10_000 ether);
 
-        burner = new DC_mETH_Burner(COLLATERAL);
+        burner = new mETH_Burner(COLLATERAL);
         vm.deal(address(burner), 0);
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
@@ -110,7 +110,7 @@ contract DC_mETH_BurnerTest is Test {
     function test_TriggerBurn(uint256 depositAmount1) public {
         depositAmount1 = bound(depositAmount1, IStaking(STAKING).minimumUnstakeBound(), 10_000 ether);
 
-        burner = new DC_mETH_Burner(COLLATERAL);
+        burner = new mETH_Burner(COLLATERAL);
         vm.deal(address(burner), 0);
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
@@ -138,7 +138,7 @@ contract DC_mETH_BurnerTest is Test {
     function test_TriggerBurnRevertInvalidRequestId(uint256 depositAmount1) public {
         depositAmount1 = bound(depositAmount1, IStaking(STAKING).minimumUnstakeBound(), 10_000 ether);
 
-        burner = new DC_mETH_Burner(COLLATERAL);
+        burner = new mETH_Burner(COLLATERAL);
         vm.deal(address(burner), 0);
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);

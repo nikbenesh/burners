@@ -3,7 +3,7 @@ pragma solidity 0.8.25;
 
 import {IUintRequests} from "src/interfaces/IUintRequests.sol";
 
-interface IDC_mETH_Burner is IUintRequests {
+interface ImETH_Burner is IUintRequests {
     /**
      * @notice Emitted when a withdrawal is triggered.
      * @param caller caller of the function

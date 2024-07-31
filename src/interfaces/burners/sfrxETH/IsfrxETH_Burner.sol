@@ -3,16 +3,13 @@ pragma solidity 0.8.25;
 
 import {IUintRequests} from "src/interfaces/IUintRequests.sol";
 
-interface IDC_swETH_Burner is IUintRequests {
-    error InsufficientWithdrawal();
-
+interface IsfrxETH_Burner is IUintRequests {
     /**
      * @notice Emitted when a withdrawal is triggered.
      * @param caller caller of the function
-     * @param firstRequestId first request ID that was created
-     * @param lastRequestId last request ID that was created
+     * @param requestId request ID that was created
      */
-    event TriggerWithdrawal(address indexed caller, uint256 firstRequestId, uint256 lastRequestId);
+    event TriggerWithdrawal(address indexed caller, uint256 requestId);
 
     /**
      * @notice Emitted when a burn is triggered.
@@ -27,17 +24,15 @@ interface IDC_swETH_Burner is IUintRequests {
     function COLLATERAL() external view returns (address);
 
     /**
-     * @notice Get an address of the Swell Exit contract.
+     * @notice Get an address of the Frax Ether Redemption queue.
      */
-    function SWEXIT() external view returns (address);
+    function FRAX_ETHER_REDEMPTION_QUEUE() external view returns (address);
 
     /**
      * @notice Trigger a withdrawal of ETH from the collateral's underlying asset.
-     * @param maxRequests maximum number of withdrawal requests to create
-     * @return firstRequestId first request ID that was created
-     * @return lastRequestId last request ID that was created
+     * @return requestId request ID that was created
      */
-    function triggerWithdrawal(uint256 maxRequests) external returns (uint256 firstRequestId, uint256 lastRequestId);
+    function triggerWithdrawal() external returns (uint256 requestId);
 
     /**
      * @notice Trigger a claim and a burn of ETH.

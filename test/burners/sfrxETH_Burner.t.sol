@@ -3,24 +3,24 @@ pragma solidity 0.8.25;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {DC_sfrxETH_Burner} from "src/contracts/burners/DC_sfrxETH_Burner.sol";
+import {sfrxETH_Burner} from "src/contracts/burners/sfrxETH_Burner.sol";
 
-import {IFraxEtherRedemptionQueue} from "src/interfaces/burners/DC_sfrxETH/IFraxEtherRedemptionQueue.sol";
-import {IDC_sfrxETH_Burner} from "src/interfaces/burners/DC_sfrxETH/IDC_sfrxETH_Burner.sol";
+import {IFraxEtherRedemptionQueue} from "src/interfaces/burners/sfrxETH/IFraxEtherRedemptionQueue.sol";
+import {IsfrxETH_Burner} from "src/interfaces/burners/sfrxETH/IsfrxETH_Burner.sol";
 import {IUintRequests} from "src/interfaces/IUintRequests.sol";
 
 import {IERC20} from "test/mocks/AaveV3Borrow.sol";
 
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
-contract DC_sfrxETH_BurnerTest is Test {
+contract sfrxETH_BurnerTest is Test {
     address owner;
     address alice;
     uint256 alicePrivateKey;
     address bob;
     uint256 bobPrivateKey;
 
-    DC_sfrxETH_Burner burner;
+    sfrxETH_Burner burner;
 
     address public constant COLLATERAL = 0xac3E018457B222d93114458476f3E3416Abbe38F;
     address public constant FRXETH = 0x5E8422345238F34275888049021821E8E08CAa1f;
@@ -46,7 +46,7 @@ contract DC_sfrxETH_BurnerTest is Test {
     }
 
     function test_Create() public {
-        burner = new DC_sfrxETH_Burner(COLLATERAL, FRAX_ETHER_REDEMPTION_QUEUE);
+        burner = new sfrxETH_Burner(COLLATERAL, FRAX_ETHER_REDEMPTION_QUEUE);
         vm.deal(address(burner), 0);
 
         assertEq(burner.COLLATERAL(), COLLATERAL);
@@ -58,7 +58,7 @@ contract DC_sfrxETH_BurnerTest is Test {
         depositAmount1 = bound(depositAmount1, 1, 50_000 ether);
         depositAmount2 = bound(depositAmount2, 1, 50_000 ether);
 
-        burner = new DC_sfrxETH_Burner(COLLATERAL, FRAX_ETHER_REDEMPTION_QUEUE);
+        burner = new sfrxETH_Burner(COLLATERAL, FRAX_ETHER_REDEMPTION_QUEUE);
         vm.deal(address(burner), 0);
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
@@ -110,7 +110,7 @@ contract DC_sfrxETH_BurnerTest is Test {
     function test_TriggerBurn(uint256 depositAmount1) public {
         depositAmount1 = bound(depositAmount1, 1, 10_000 ether);
 
-        burner = new DC_sfrxETH_Burner(COLLATERAL, FRAX_ETHER_REDEMPTION_QUEUE);
+        burner = new sfrxETH_Burner(COLLATERAL, FRAX_ETHER_REDEMPTION_QUEUE);
         vm.deal(address(burner), 0);
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
@@ -133,7 +133,7 @@ contract DC_sfrxETH_BurnerTest is Test {
     function test_TriggerBurnRevertInvalidRequestId(uint256 depositAmount1) public {
         depositAmount1 = bound(depositAmount1, 1, 10_000 ether);
 
-        burner = new DC_sfrxETH_Burner(COLLATERAL, FRAX_ETHER_REDEMPTION_QUEUE);
+        burner = new sfrxETH_Burner(COLLATERAL, FRAX_ETHER_REDEMPTION_QUEUE);
         vm.deal(address(burner), 0);
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);

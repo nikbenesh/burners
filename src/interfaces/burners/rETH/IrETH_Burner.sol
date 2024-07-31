@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-interface IDC_rETH_Burner {
+interface IrETH_Burner {
     /**
      * @notice Emitted when a burn is triggered.
      * @param caller caller of the function

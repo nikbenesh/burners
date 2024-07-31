@@ -3,7 +3,7 @@ pragma solidity 0.8.25;
 
 import {IAddressRequests} from "src/interfaces/IAddressRequests.sol";
 
-interface IDC_sUSDe_Burner is IAddressRequests {
+interface IsUSDe_Burner is IAddressRequests {
     error HasCooldown();
     error NoCooldown();
 

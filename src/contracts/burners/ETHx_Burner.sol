@@ -4,34 +4,34 @@ pragma solidity 0.8.25;
 import {SelfDestruct} from "src/contracts/SelfDestruct.sol";
 import {UintRequests} from "src/contracts/UintRequests.sol";
 
-import {IDC_ETHx_Burner} from "src/interfaces/burners/DC_ETHx/IDC_ETHx_Burner.sol";
-import {IStaderStakePoolsManager} from "src/interfaces/burners/DC_ETHx/IStaderStakePoolsManager.sol";
-import {IUserWithdrawalManager} from "src/interfaces/burners/DC_ETHx/IUserWithdrawalManager.sol";
-import {IStaderConfig} from "src/interfaces/burners/DC_ETHx/IStaderConfig.sol";
+import {IETHx_Burner} from "src/interfaces/burners/ETHx/IETHx_Burner.sol";
+import {IStaderStakePoolsManager} from "src/interfaces/burners/ETHx/IStaderStakePoolsManager.sol";
+import {IUserWithdrawalManager} from "src/interfaces/burners/ETHx/IUserWithdrawalManager.sol";
+import {IStaderConfig} from "src/interfaces/burners/ETHx/IStaderConfig.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
-contract DC_ETHx_Burner is UintRequests, IDC_ETHx_Burner {
+contract ETHx_Burner is UintRequests, IETHx_Burner {
     using Math for uint256;
 
     /**
-     * @inheritdoc IDC_ETHx_Burner
+     * @inheritdoc IETHx_Burner
      */
     address public immutable COLLATERAL;
 
     /**
-     * @inheritdoc IDC_ETHx_Burner
+     * @inheritdoc IETHx_Burner
      */
     address public immutable STADER_CONFIG;
 
     /**
-     * @inheritdoc IDC_ETHx_Burner
+     * @inheritdoc IETHx_Burner
      */
     address public immutable USER_WITHDRAW_MANAGER;
 
     /**
-     * @inheritdoc IDC_ETHx_Burner
+     * @inheritdoc IETHx_Burner
      */
     address public immutable STAKE_POOLS_MANAGER;
 
@@ -46,7 +46,7 @@ contract DC_ETHx_Burner is UintRequests, IDC_ETHx_Burner {
     }
 
     /**
-     * @inheritdoc IDC_ETHx_Burner
+     * @inheritdoc IETHx_Burner
      */
     function triggerWithdrawal(uint256 maxRequests) external returns (uint256 firstRequestId, uint256 lastRequestId) {
         uint256 amount = IERC20(COLLATERAL).balanceOf(address(this));
@@ -87,7 +87,7 @@ contract DC_ETHx_Burner is UintRequests, IDC_ETHx_Burner {
     }
 
     /**
-     * @inheritdoc IDC_ETHx_Burner
+     * @inheritdoc IETHx_Burner
      */
     function triggerBurn(uint256 requestId) external {
         _removeRequestId(requestId);

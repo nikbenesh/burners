@@ -3,12 +3,12 @@ pragma solidity 0.8.25;
 
 import {SelfDestruct} from "src/contracts/SelfDestruct.sol";
 
-import {IDC_rETH_Burner} from "src/interfaces/burners/DC_rETH/IDC_rETH_Burner.sol";
-import {IRocketTokenRETH} from "src/interfaces/burners/DC_rETH/IRocketTokenRETH.sol";
+import {IrETH_Burner} from "src/interfaces/burners/rETH/IrETH_Burner.sol";
+import {IRocketTokenRETH} from "src/interfaces/burners/rETH/IRocketTokenRETH.sol";
 
-contract DC_rETH_Burner is IDC_rETH_Burner {
+contract rETH_Burner is IrETH_Burner {
     /**
-     * @inheritdoc IDC_rETH_Burner
+     * @inheritdoc IrETH_Burner
      */
     address public immutable COLLATERAL;
 
@@ -17,7 +17,7 @@ contract DC_rETH_Burner is IDC_rETH_Burner {
     }
 
     /**
-     * @inheritdoc IDC_rETH_Burner
+     * @inheritdoc IrETH_Burner
      */
     function triggerBurn(uint256 amount) external {
         IRocketTokenRETH(COLLATERAL).burn(amount);

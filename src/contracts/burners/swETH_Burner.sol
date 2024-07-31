@@ -4,23 +4,23 @@ pragma solidity 0.8.25;
 import {SelfDestruct} from "src/contracts/SelfDestruct.sol";
 import {UintRequests} from "src/contracts/UintRequests.sol";
 
-import {IDC_swETH_Burner} from "src/interfaces/burners/DC_swETH/IDC_swETH_Burner.sol";
-import {ISwEXIT} from "src/interfaces/burners/DC_swETH/ISwEXIT.sol";
+import {IswETH_Burner} from "src/interfaces/burners/swETH/IswETH_Burner.sol";
+import {ISwEXIT} from "src/interfaces/burners/swETH/ISwEXIT.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-contract DC_swETH_Burner is UintRequests, IDC_swETH_Burner, IERC721Receiver {
+contract swETH_Burner is UintRequests, IswETH_Burner, IERC721Receiver {
     using Math for uint256;
 
     /**
-     * @inheritdoc IDC_swETH_Burner
+     * @inheritdoc IswETH_Burner
      */
     address public immutable COLLATERAL;
 
     /**
-     * @inheritdoc IDC_swETH_Burner
+     * @inheritdoc IswETH_Burner
      */
     address public immutable SWEXIT;
 
@@ -33,7 +33,7 @@ contract DC_swETH_Burner is UintRequests, IDC_swETH_Burner, IERC721Receiver {
     }
 
     /**
-     * @inheritdoc IDC_swETH_Burner
+     * @inheritdoc IswETH_Burner
      */
     function triggerWithdrawal(uint256 maxRequests) external returns (uint256 firstRequestId, uint256 lastRequestId) {
         uint256 amount = IERC20(COLLATERAL).balanceOf(address(this));
@@ -70,7 +70,7 @@ contract DC_swETH_Burner is UintRequests, IDC_swETH_Burner, IERC721Receiver {
     }
 
     /**
-     * @inheritdoc IDC_swETH_Burner
+     * @inheritdoc IswETH_Burner
      */
     function triggerBurn(uint256 requestId) external {
         _removeRequestId(requestId);

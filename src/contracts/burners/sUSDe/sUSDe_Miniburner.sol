@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {ISUSDe} from "src/interfaces/burners/DC_sUSDe/ISUSDe.sol";
-import {IUSDe} from "src/interfaces/burners/DC_sUSDe/IUSDe.sol";
+import {ISUSDe} from "src/interfaces/burners/sUSDe/ISUSDe.sol";
+import {IUSDe} from "src/interfaces/burners/sUSDe/IUSDe.sol";
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract DC_sUSDe_Miniburner is OwnableUpgradeable {
+contract sUSDe_Miniburner is OwnableUpgradeable {
     address private constant _DEAD = address(0xdEaD);
 
     address private immutable _COLLATERAL;

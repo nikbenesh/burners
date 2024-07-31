@@ -4,38 +4,38 @@ pragma solidity 0.8.25;
 import {SelfDestruct} from "src/contracts/SelfDestruct.sol";
 import {UintRequests} from "src/contracts/UintRequests.sol";
 
-import {IDC_wstETH_Burner} from "src/interfaces/burners/DC_wstETH/IDC_wstETH_Burner.sol";
-import {IWithdrawalQueue} from "src/interfaces/burners/DC_wstETH/IWithdrawalQueue.sol";
-import {IWstETH} from "src/interfaces/burners/DC_wstETH/IWstETH.sol";
+import {IwstETH_Burner} from "src/interfaces/burners/wstETH/IwstETH_Burner.sol";
+import {IWithdrawalQueue} from "src/interfaces/burners/wstETH/IWithdrawalQueue.sol";
+import {IWstETH} from "src/interfaces/burners/wstETH/IWstETH.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
-contract DC_wstETH_Burner is UintRequests, IDC_wstETH_Burner {
+contract wstETH_Burner is UintRequests, IwstETH_Burner {
     using Math for uint256;
 
     /**
-     * @inheritdoc IDC_wstETH_Burner
+     * @inheritdoc IwstETH_Burner
      */
     address public immutable COLLATERAL;
 
     /**
-     * @inheritdoc IDC_wstETH_Burner
+     * @inheritdoc IwstETH_Burner
      */
     address public immutable STETH;
 
     /**
-     * @inheritdoc IDC_wstETH_Burner
+     * @inheritdoc IwstETH_Burner
      */
     address public immutable LIDO_WITHDRAWAL_QUEUE;
 
     /**
-     * @inheritdoc IDC_wstETH_Burner
+     * @inheritdoc IwstETH_Burner
      */
     uint256 public immutable MIN_STETH_WITHDRAWAL_AMOUNT;
 
     /**
-     * @inheritdoc IDC_wstETH_Burner
+     * @inheritdoc IwstETH_Burner
      */
     uint256 public immutable MAX_STETH_WITHDRAWAL_AMOUNT;
 
@@ -52,7 +52,7 @@ contract DC_wstETH_Burner is UintRequests, IDC_wstETH_Burner {
     }
 
     /**
-     * @inheritdoc IDC_wstETH_Burner
+     * @inheritdoc IwstETH_Burner
      */
     function triggerWithdrawal(uint256 maxRequests) external returns (uint256[] memory requestIds_) {
         IWstETH(COLLATERAL).unwrap(IERC20(COLLATERAL).balanceOf(address(this)));
@@ -86,7 +86,7 @@ contract DC_wstETH_Burner is UintRequests, IDC_wstETH_Burner {
     }
 
     /**
-     * @inheritdoc IDC_wstETH_Burner
+     * @inheritdoc IwstETH_Burner
      */
     function triggerBurn(uint256 requestId) external {
         _removeRequestId(requestId);
@@ -99,7 +99,7 @@ contract DC_wstETH_Burner is UintRequests, IDC_wstETH_Burner {
     }
 
     /**
-     * @inheritdoc IDC_wstETH_Burner
+     * @inheritdoc IwstETH_Burner
      */
     function triggerBurnBatch(uint256[] calldata requestIds_, uint256[] calldata hints) external {
         uint256 length = requestIds_.length;

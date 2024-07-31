@@ -1,28 +1,28 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {DC_sUSDe_Miniburner} from "./DC_sUSDe_Miniburner.sol";
+import {sUSDe_Miniburner} from "./sUSDe_Miniburner.sol";
 import {AddressRequests} from "src/contracts/AddressRequests.sol";
 
-import {IDC_sUSDe_Burner} from "src/interfaces/burners/DC_sUSDe/IDC_sUSDe_Burner.sol";
-import {ISUSDe} from "src/interfaces/burners/DC_sUSDe/ISUSDe.sol";
-import {IUSDe} from "src/interfaces/burners/DC_sUSDe/IUSDe.sol";
+import {IsUSDe_Burner} from "src/interfaces/burners/sUSDe/IsUSDe_Burner.sol";
+import {ISUSDe} from "src/interfaces/burners/sUSDe/ISUSDe.sol";
+import {IUSDe} from "src/interfaces/burners/sUSDe/IUSDe.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 
-contract DC_sUSDe_Burner is AddressRequests, IDC_sUSDe_Burner {
+contract sUSDe_Burner is AddressRequests, IsUSDe_Burner {
     using Clones for address;
 
     address private constant _DEAD = address(0xdEaD);
 
     /**
-     * @inheritdoc IDC_sUSDe_Burner
+     * @inheritdoc IsUSDe_Burner
      */
     address public immutable COLLATERAL;
 
     /**
-     * @inheritdoc IDC_sUSDe_Burner
+     * @inheritdoc IsUSDe_Burner
      */
     address public immutable USDE;
 
@@ -37,7 +37,7 @@ contract DC_sUSDe_Burner is AddressRequests, IDC_sUSDe_Burner {
     }
 
     /**
-     * @inheritdoc IDC_sUSDe_Burner
+     * @inheritdoc IsUSDe_Burner
      */
     function triggerWithdrawal() external returns (address requestId) {
         if (ISUSDe(COLLATERAL).cooldownDuration() == 0) {
@@ -49,7 +49,7 @@ contract DC_sUSDe_Burner is AddressRequests, IDC_sUSDe_Burner {
         uint256 amount = IERC20(COLLATERAL).balanceOf(address(this));
         IERC20(COLLATERAL).transfer(requestId, amount);
 
-        DC_sUSDe_Miniburner(requestId).initialize(amount);
+        sUSDe_Miniburner(requestId).initialize(amount);
 
         _addRequestId(requestId);
 
@@ -57,18 +57,18 @@ contract DC_sUSDe_Burner is AddressRequests, IDC_sUSDe_Burner {
     }
 
     /**
-     * @inheritdoc IDC_sUSDe_Burner
+     * @inheritdoc IsUSDe_Burner
      */
     function triggerBurn(address requestId) external {
         _removeRequestId(requestId);
 
-        DC_sUSDe_Miniburner(requestId).triggerBurn();
+        sUSDe_Miniburner(requestId).triggerBurn();
 
         emit TriggerBurn(msg.sender, requestId);
     }
 
     /**
-     * @inheritdoc IDC_sUSDe_Burner
+     * @inheritdoc IsUSDe_Burner
      */
     function triggerInstantBurn() external {
         if (ISUSDe(COLLATERAL).cooldownDuration() != 0) {

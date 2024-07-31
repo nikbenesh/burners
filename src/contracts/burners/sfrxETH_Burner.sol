@@ -4,20 +4,20 @@ pragma solidity 0.8.25;
 import {SelfDestruct} from "src/contracts/SelfDestruct.sol";
 import {UintRequests} from "src/contracts/UintRequests.sol";
 
-import {IDC_sfrxETH_Burner} from "src/interfaces/burners/DC_sfrxETH/IDC_sfrxETH_Burner.sol";
-import {IFraxEtherRedemptionQueue} from "src/interfaces/burners/DC_sfrxETH/IFraxEtherRedemptionQueue.sol";
+import {IsfrxETH_Burner} from "src/interfaces/burners/sfrxETH/IsfrxETH_Burner.sol";
+import {IFraxEtherRedemptionQueue} from "src/interfaces/burners/sfrxETH/IFraxEtherRedemptionQueue.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-contract DC_sfrxETH_Burner is UintRequests, IDC_sfrxETH_Burner, IERC721Receiver {
+contract sfrxETH_Burner is UintRequests, IsfrxETH_Burner, IERC721Receiver {
     /**
-     * @inheritdoc IDC_sfrxETH_Burner
+     * @inheritdoc IsfrxETH_Burner
      */
     address public immutable COLLATERAL;
 
     /**
-     * @inheritdoc IDC_sfrxETH_Burner
+     * @inheritdoc IsfrxETH_Burner
      */
     address public immutable FRAX_ETHER_REDEMPTION_QUEUE;
 
@@ -30,7 +30,7 @@ contract DC_sfrxETH_Burner is UintRequests, IDC_sfrxETH_Burner, IERC721Receiver 
     }
 
     /**
-     * @inheritdoc IDC_sfrxETH_Burner
+     * @inheritdoc IsfrxETH_Burner
      */
     function triggerWithdrawal() external returns (uint256 requestId) {
         uint256 amount = IERC20(COLLATERAL).balanceOf(address(this));
@@ -45,7 +45,7 @@ contract DC_sfrxETH_Burner is UintRequests, IDC_sfrxETH_Burner, IERC721Receiver 
     }
 
     /**
-     * @inheritdoc IDC_sfrxETH_Burner
+     * @inheritdoc IsfrxETH_Burner
      */
     function triggerBurn(uint256 requestId) external {
         _removeRequestId(requestId);

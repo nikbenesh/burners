@@ -3,10 +3,10 @@ pragma solidity 0.8.25;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {DC_rETH_Burner} from "src/contracts/burners/DC_rETH_Burner.sol";
+import {rETH_Burner} from "src/contracts/burners/rETH_Burner.sol";
 
-import {IDC_rETH_Burner} from "src/interfaces/burners/DC_rETH/IDC_rETH_Burner.sol";
-import {IRocketTokenRETH} from "src/interfaces/burners/DC_rETH/IRocketTokenRETH.sol";
+import {IrETH_Burner} from "src/interfaces/burners/rETH/IrETH_Burner.sol";
+import {IRocketTokenRETH} from "src/interfaces/burners/rETH/IRocketTokenRETH.sol";
 
 import {AaveV3Borrow, IERC20, IWETH} from "test/mocks/AaveV3Borrow.sol";
 
@@ -14,7 +14,7 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
-contract DC_rETH_BurnerTest is Test {
+contract rETH_BurnerTest is Test {
     IWETH private weth = IWETH(WETH);
 
     address owner;
@@ -25,7 +25,7 @@ contract DC_rETH_BurnerTest is Test {
 
     AaveV3Borrow private aave;
 
-    DC_rETH_Burner burner;
+    rETH_Burner burner;
 
     address public constant COLLATERAL = 0xae78736Cd615f374D3085123A210448E74Fc6393;
     address public constant ROCKET_DEPOSIT_POOL = 0xDD3f50F8A6CafbE9b31a427582963f465E745AF8;
@@ -53,7 +53,7 @@ contract DC_rETH_BurnerTest is Test {
     }
 
     function test_Create() public {
-        burner = new DC_rETH_Burner(COLLATERAL);
+        burner = new rETH_Burner(COLLATERAL);
         vm.deal(address(burner), 0);
 
         assertEq(burner.COLLATERAL(), COLLATERAL);
@@ -64,7 +64,7 @@ contract DC_rETH_BurnerTest is Test {
         burnAmount1 = bound(burnAmount1, 1, depositAmount1);
         burnAmount2 = bound(burnAmount2, 1, depositAmount1);
 
-        burner = new DC_rETH_Burner(COLLATERAL);
+        burner = new rETH_Burner(COLLATERAL);
         vm.deal(address(burner), 0);
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
@@ -93,7 +93,7 @@ contract DC_rETH_BurnerTest is Test {
         depositAmount1 = bound(depositAmount1, 1, 100_000 ether);
         burnAmount1 = bound(burnAmount1, 1, type(uint256).max);
 
-        burner = new DC_rETH_Burner(COLLATERAL);
+        burner = new rETH_Burner(COLLATERAL);
         vm.deal(address(burner), 0);
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
