@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {sUSDe_Miniburner} from "./sUSDe_Miniburner.sol";
 import {AddressRequests} from "src/contracts/AddressRequests.sol";
+import {sUSDe_Miniburner} from "./sUSDe_Miniburner.sol";
 
-import {IsUSDe_Burner} from "src/interfaces/burners/sUSDe/IsUSDe_Burner.sol";
 import {ISUSDe} from "src/interfaces/burners/sUSDe/ISUSDe.sol";
 import {IUSDe} from "src/interfaces/burners/sUSDe/IUSDe.sol";
+import {IsUSDe_Burner} from "src/interfaces/burners/sUSDe/IsUSDe_Burner.sol";
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract sUSDe_Burner is AddressRequests, IsUSDe_Burner {
     using Clones for address;

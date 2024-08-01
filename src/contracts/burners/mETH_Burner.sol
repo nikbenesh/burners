@@ -4,9 +4,9 @@ pragma solidity 0.8.25;
 import {SelfDestruct} from "src/contracts/SelfDestruct.sol";
 import {UintRequests} from "src/contracts/UintRequests.sol";
 
-import {ImETH_Burner} from "src/interfaces/burners/mETH/ImETH_Burner.sol";
-import {IStaking} from "src/interfaces/burners/mETH/IStaking.sol";
 import {IMETH} from "src/interfaces/burners/mETH/IMETH.sol";
+import {IStaking} from "src/interfaces/burners/mETH/IStaking.sol";
+import {ImETH_Burner} from "src/interfaces/burners/mETH/ImETH_Burner.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 

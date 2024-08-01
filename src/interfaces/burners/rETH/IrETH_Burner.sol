@@ -11,7 +11,7 @@ interface IrETH_Burner {
     event TriggerBurn(address indexed caller, uint256 assetAmount, uint256 ethAmount);
 
     /**
-     * @notice Get an address of the Default Collateral contract.
+     * @notice Get an address of the collateral.
      */
     function COLLATERAL() external view returns (address);
 

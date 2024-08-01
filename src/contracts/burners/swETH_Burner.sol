@@ -4,12 +4,12 @@ pragma solidity 0.8.25;
 import {SelfDestruct} from "src/contracts/SelfDestruct.sol";
 import {UintRequests} from "src/contracts/UintRequests.sol";
 
-import {IswETH_Burner} from "src/interfaces/burners/swETH/IswETH_Burner.sol";
 import {ISwEXIT} from "src/interfaces/burners/swETH/ISwEXIT.sol";
+import {IswETH_Burner} from "src/interfaces/burners/swETH/IswETH_Burner.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract swETH_Burner is UintRequests, IswETH_Burner, IERC721Receiver {
     using Math for uint256;

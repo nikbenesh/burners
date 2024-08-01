@@ -63,8 +63,8 @@ An asset transfered to the [Burner](../src/contracts/burners/swETH_Burner.sol) -
 
 1. Trigger withdrawal
 
-   - Create requests with acceptable by the swEXIT contract amounts
-   - Send withdrawal requests to the swEXIT contract
+   - Create requests with acceptable by the Swell Exit contract amounts
+   - Send withdrawal requests to the Swell Exit contract
 
 2. Trigger burn
 

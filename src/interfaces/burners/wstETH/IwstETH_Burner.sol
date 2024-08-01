@@ -28,7 +28,7 @@ interface IwstETH_Burner is IUintRequests {
     event TriggerBurnBatch(address indexed caller, uint256[] requestIds);
 
     /**
-     * @notice Get an address of the Default Collateral contract.
+     * @notice Get an address of the collateral.
      */
     function COLLATERAL() external view returns (address);
 
@@ -38,7 +38,7 @@ interface IwstETH_Burner is IUintRequests {
     function STETH() external view returns (address);
 
     /**
-     * @notice Get an address of the Lido withdrawal queue.
+     * @notice Get an address of the Lido Withdrawal Queue.
      */
     function LIDO_WITHDRAWAL_QUEUE() external view returns (address);
 

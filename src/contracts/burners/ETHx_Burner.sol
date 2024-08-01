@@ -5,9 +5,9 @@ import {SelfDestruct} from "src/contracts/SelfDestruct.sol";
 import {UintRequests} from "src/contracts/UintRequests.sol";
 
 import {IETHx_Burner} from "src/interfaces/burners/ETHx/IETHx_Burner.sol";
+import {IStaderConfig} from "src/interfaces/burners/ETHx/IStaderConfig.sol";
 import {IStaderStakePoolsManager} from "src/interfaces/burners/ETHx/IStaderStakePoolsManager.sol";
 import {IUserWithdrawalManager} from "src/interfaces/burners/ETHx/IUserWithdrawalManager.sol";
-import {IStaderConfig} from "src/interfaces/burners/ETHx/IStaderConfig.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";

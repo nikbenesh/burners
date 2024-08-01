@@ -3,8 +3,8 @@ pragma solidity 0.8.25;
 
 import {SelfDestruct} from "src/contracts/SelfDestruct.sol";
 
-import {IrETH_Burner} from "src/interfaces/burners/rETH/IrETH_Burner.sol";
 import {IRocketTokenRETH} from "src/interfaces/burners/rETH/IRocketTokenRETH.sol";
+import {IrETH_Burner} from "src/interfaces/burners/rETH/IrETH_Burner.sol";
 
 contract rETH_Burner is IrETH_Burner {
     /**

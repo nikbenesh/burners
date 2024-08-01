@@ -19,12 +19,12 @@ interface IsfrxETH_Burner is IUintRequests {
     event TriggerBurn(address indexed caller, uint256 requestId);
 
     /**
-     * @notice Get an address of the Default Collateral contract.
+     * @notice Get an address of the collateral.
      */
     function COLLATERAL() external view returns (address);
 
     /**
-     * @notice Get an address of the Frax Ether Redemption queue.
+     * @notice Get an address of the Frax Ether Redemption Queue.
      */
     function FRAX_ETHER_REDEMPTION_QUEUE() external view returns (address);
 

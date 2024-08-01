@@ -4,8 +4,8 @@ pragma solidity 0.8.25;
 import {ISUSDe} from "src/interfaces/burners/sUSDe/ISUSDe.sol";
 import {IUSDe} from "src/interfaces/burners/sUSDe/IUSDe.sol";
 
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract sUSDe_Miniburner is OwnableUpgradeable {
     address private constant _DEAD = address(0xdEaD);
