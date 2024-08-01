@@ -2,7 +2,7 @@
 
 **[Symbiotic Protocol](https://symbiotic.fi) is an extremely flexible and permissionless shared security system.**
 
-This repository contains Default Burners contracts.
+This repository contains Symbiotic Default Burners contracts.
 
 ## Technical Documentation
 
