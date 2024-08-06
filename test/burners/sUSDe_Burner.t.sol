@@ -8,6 +8,8 @@ import {sUSDe_Miniburner} from "src/contracts/burners/sUSDe/sUSDe_Miniburner.sol
 
 import {IsUSDe_Burner} from "src/interfaces/burners/sUSDe/IsUSDe_Burner.sol";
 import {ISUSDe} from "src/interfaces/burners/sUSDe/ISUSDe.sol";
+import {IUSDe} from "src/interfaces/burners/sUSDe/IUSDe.sol";
+import {IEthenaMinting} from "src/interfaces//burners/sUSDe/IEthenaMinting.sol";
 import {IAddressRequests} from "src/interfaces/IAddressRequests.sol";
 
 import {IERC20} from "test/mocks/AaveV3Borrow.sol";
@@ -27,6 +29,8 @@ contract sUSDe_BurnerTest is Test {
     address public constant MINTER = 0xe3490297a08d6fC8Da46Edb7B6142E4F461b62D3;
     address public constant USDE = 0x4c9EDD5852cd905f086C759E8383e09bff1E68B3;
     address public constant DEFAULT_ADMIN = 0x3B0AAf6e6fCd4a7cEEf8c92C32DFeA9E64dC1862;
+    address public constant REDEEMER = 0xD0899998CCEB5B3df5cdcFaAdd43e53B8e1d553e;
+    address public constant USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
 
     function setUp() public {
         uint256 mainnetFork = vm.createFork(vm.rpcUrl("mainnet"));
@@ -54,6 +58,7 @@ contract sUSDe_BurnerTest is Test {
 
         assertEq(burner.COLLATERAL(), COLLATERAL);
         assertEq(burner.USDE(), USDE);
+        assertEq(IERC20(USDE).allowance(address(burner), IUSDe(USDE).minter()), type(uint256).max);
     }
 
     function test_TriggerWithdrawal(uint256 depositAmount1, uint256 depositAmount2, uint24 duration) public {
@@ -106,7 +111,7 @@ contract sUSDe_BurnerTest is Test {
         assertEq(requestsIds[1], requestsId2);
     }
 
-    function test_TriggerBurn(uint256 depositAmount1, uint24 duration) public {
+    function test_TriggerClaim(uint256 depositAmount1, uint24 duration) public {
         duration = uint24(bound(duration, 1, 90 days));
 
         vm.startPrank(DEFAULT_ADMIN);
@@ -125,14 +130,14 @@ contract sUSDe_BurnerTest is Test {
 
         vm.warp(block.timestamp + ISUSDe(COLLATERAL).cooldownDuration());
 
-        uint256 totalSupplyBefore = IERC20(USDE).totalSupply();
-        burner.triggerBurn(requestsId);
-        assertEq(totalSupplyBefore - IERC20(USDE).totalSupply(), usdeAmount);
+        uint256 balanceBefore = IERC20(USDE).balanceOf(address(burner));
+        burner.triggerClaim(requestsId);
+        assertEq(IERC20(USDE).balanceOf(address(burner)) - balanceBefore, usdeAmount);
 
         assertEq(burner.requestIdsLength(), 0);
     }
 
-    function test_TriggerBurnRevertInvalidRequestId(uint256 depositAmount1, uint24 duration) public {
+    function test_TriggerClaimRevertInvalidRequestId(uint256 depositAmount1, uint24 duration) public {
         duration = uint24(bound(duration, 1, 90 days));
 
         vm.startPrank(DEFAULT_ADMIN);
@@ -151,10 +156,10 @@ contract sUSDe_BurnerTest is Test {
         vm.warp(block.timestamp + ISUSDe(COLLATERAL).cooldownDuration());
 
         vm.expectRevert(IAddressRequests.InvalidRequestId.selector);
-        burner.triggerBurn(address(0));
+        burner.triggerClaim(address(0));
     }
 
-    function test_TriggerWithdrawalRevertNoCooldown(uint256 depositAmount1) public {
+    function test_TriggerClaimRevertNoCooldown(uint256 depositAmount1) public {
         vm.startPrank(DEFAULT_ADMIN);
         ISUSDe(COLLATERAL).setCooldownDuration(0);
         vm.stopPrank();
@@ -170,7 +175,7 @@ contract sUSDe_BurnerTest is Test {
         burner.triggerWithdrawal();
     }
 
-    function test_TriggerInstantBurn(uint256 depositAmount1) public {
+    function test_TriggerInstantClaim(uint256 depositAmount1) public {
         vm.startPrank(DEFAULT_ADMIN);
         ISUSDe(COLLATERAL).setCooldownDuration(0);
         vm.stopPrank();
@@ -184,14 +189,14 @@ contract sUSDe_BurnerTest is Test {
 
         uint256 usdeAmount = ISUSDe(COLLATERAL).previewRedeem(depositAmount1);
 
-        uint256 totalSupplyBefore = IERC20(USDE).totalSupply();
-        burner.triggerInstantBurn();
-        assertEq(totalSupplyBefore - IERC20(USDE).totalSupply(), usdeAmount);
+        uint256 balanceBefore = IERC20(USDE).balanceOf(address(burner));
+        burner.triggerInstantClaim();
+        assertEq(IERC20(USDE).balanceOf(address(burner)) - balanceBefore, usdeAmount);
 
         assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), 0);
     }
 
-    function test_TriggerInstantBurnRevertHasCooldown(uint256 depositAmount1, uint24 duration) public {
+    function test_TriggerInstantClaimRevertHasCooldown(uint256 depositAmount1, uint24 duration) public {
         duration = uint24(bound(duration, 1, 90 days));
 
         vm.startPrank(DEFAULT_ADMIN);
@@ -206,10 +211,204 @@ contract sUSDe_BurnerTest is Test {
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
         vm.expectRevert(IsUSDe_Burner.HasCooldown.selector);
-        burner.triggerInstantBurn();
+        burner.triggerInstantClaim();
     }
-}
 
-interface IUSDe {
-    function mint(address account, uint256 amount) external;
+    function test_TriggerBurn(uint256 depositAmount1, uint24 duration) public {
+        duration = uint24(bound(duration, 1, 90 days));
+
+        vm.startPrank(DEFAULT_ADMIN);
+        ISUSDe(COLLATERAL).setCooldownDuration(duration);
+        vm.stopPrank();
+
+        depositAmount1 = bound(depositAmount1, 1e9, 2_000_000 ether);
+
+        burner = new sUSDe_Burner(COLLATERAL, address(new sUSDe_Miniburner(COLLATERAL)));
+        vm.deal(address(burner), 0);
+
+        IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
+
+        uint256 usdeAmount = ISUSDe(COLLATERAL).previewRedeem(depositAmount1);
+
+        vm.assume(
+            usdeAmount >= 1e12
+                && usdeAmount
+                    <= Math.min(
+                        IEthenaMinting(IUSDe(USDE).minter()).tokenConfig(USDT).maxRedeemPerBlock
+                            - IEthenaMinting(IUSDe(USDE).minter()).totalPerBlockPerAsset(block.number, USDT).redeemedPerBlock,
+                        IEthenaMinting(IUSDe(USDE).minter()).globalConfig().globalMaxRedeemPerBlock
+                            - IEthenaMinting(IUSDe(USDE).minter()).totalPerBlock(block.number).redeemedPerBlock
+                    )
+        );
+
+        address requestsId = burner.triggerWithdrawal();
+
+        vm.warp(block.timestamp + ISUSDe(COLLATERAL).cooldownDuration());
+
+        burner.triggerClaim(requestsId);
+
+        IEthenaMinting.Order memory order = IEthenaMinting.Order({
+            order_id: "order_id",
+            order_type: IEthenaMinting.OrderType.REDEEM,
+            expiry: uint120(block.timestamp + 1 days),
+            nonce: uint128(1),
+            benefactor: address(burner),
+            beneficiary: address(burner),
+            collateral_asset: USDT,
+            collateral_amount: uint128(usdeAmount / 1e12),
+            usde_amount: uint128(usdeAmount)
+        });
+
+        IEthenaMinting.Signature memory signature = IEthenaMinting.Signature({
+            signature_type: IEthenaMinting.SignatureType.EIP1271,
+            signature_bytes: abi.encode(order)
+        });
+
+        vm.startPrank(DEFAULT_ADMIN);
+        IEthenaMinting(IUSDe(USDE).minter()).addWhitelistedBenefactor(address(burner));
+        vm.stopPrank();
+
+        uint256 balanceBefore = IERC20(USDE).balanceOf(address(burner));
+        uint256 balanceBefore2 = IERC20(USDT).balanceOf(address(burner));
+
+        vm.startPrank(REDEEMER);
+        IEthenaMinting(IUSDe(USDE).minter()).redeem(order, signature);
+        vm.stopPrank();
+
+        assertEq(balanceBefore - IERC20(USDE).balanceOf(address(burner)), usdeAmount);
+        assertEq(IERC20(USDT).balanceOf(address(burner)) - balanceBefore2, usdeAmount / 1e12);
+
+        balanceBefore = IERC20(USDT).balanceOf(address(burner));
+        balanceBefore2 = IERC20(USDT).balanceOf(address(0xdEaD));
+
+        burner.triggerBurn(USDT);
+
+        assertEq(balanceBefore - IERC20(USDT).balanceOf(address(burner)), usdeAmount / 1e12);
+        assertEq(IERC20(USDT).balanceOf(address(0xdEaD)) - balanceBefore2, usdeAmount / 1e12);
+    }
+
+    function test_TriggerBurnRevertInvalidAsset1(uint256 depositAmount1, uint24 duration) public {
+        duration = uint24(bound(duration, 1, 90 days));
+
+        vm.startPrank(DEFAULT_ADMIN);
+        ISUSDe(COLLATERAL).setCooldownDuration(duration);
+        vm.stopPrank();
+
+        depositAmount1 = bound(depositAmount1, 1e9, 2_000_000 ether);
+
+        burner = new sUSDe_Burner(COLLATERAL, address(new sUSDe_Miniburner(COLLATERAL)));
+        vm.deal(address(burner), 0);
+
+        IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
+
+        vm.expectRevert(IsUSDe_Burner.InvalidAsset.selector);
+        burner.triggerBurn(COLLATERAL);
+    }
+
+    function test_TriggerBurnRevertInvalidAsset2(uint256 depositAmount1, uint24 duration) public {
+        duration = uint24(bound(duration, 1, 90 days));
+
+        vm.startPrank(DEFAULT_ADMIN);
+        ISUSDe(COLLATERAL).setCooldownDuration(duration);
+        vm.stopPrank();
+
+        depositAmount1 = bound(depositAmount1, 1e9, 2_000_000 ether);
+
+        burner = new sUSDe_Burner(COLLATERAL, address(new sUSDe_Miniburner(COLLATERAL)));
+        vm.deal(address(burner), 0);
+
+        IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
+
+        uint256 usdeAmount = ISUSDe(COLLATERAL).previewRedeem(depositAmount1);
+
+        vm.assume(
+            usdeAmount >= 1e12
+                && usdeAmount
+                    <= Math.min(
+                        IEthenaMinting(IUSDe(USDE).minter()).tokenConfig(USDT).maxRedeemPerBlock
+                            - IEthenaMinting(IUSDe(USDE).minter()).totalPerBlockPerAsset(block.number, USDT).redeemedPerBlock,
+                        IEthenaMinting(IUSDe(USDE).minter()).globalConfig().globalMaxRedeemPerBlock
+                            - IEthenaMinting(IUSDe(USDE).minter()).totalPerBlock(block.number).redeemedPerBlock
+                    )
+        );
+
+        address requestsId = burner.triggerWithdrawal();
+
+        vm.warp(block.timestamp + ISUSDe(COLLATERAL).cooldownDuration());
+
+        burner.triggerClaim(requestsId);
+
+        IEthenaMinting.Order memory order = IEthenaMinting.Order({
+            order_id: "order_id",
+            order_type: IEthenaMinting.OrderType.REDEEM,
+            expiry: uint120(block.timestamp + 1 days),
+            nonce: uint128(1),
+            benefactor: address(burner),
+            beneficiary: address(burner),
+            collateral_asset: USDT,
+            collateral_amount: uint128(usdeAmount / 1e12),
+            usde_amount: uint128(usdeAmount)
+        });
+
+        IEthenaMinting.Signature memory signature = IEthenaMinting.Signature({
+            signature_type: IEthenaMinting.SignatureType.EIP1271,
+            signature_bytes: abi.encode(order)
+        });
+
+        vm.startPrank(DEFAULT_ADMIN);
+        IEthenaMinting(IUSDe(USDE).minter()).addWhitelistedBenefactor(address(burner));
+        vm.stopPrank();
+
+        vm.startPrank(REDEEMER);
+        IEthenaMinting(IUSDe(USDE).minter()).redeem(order, signature);
+        vm.stopPrank();
+
+        vm.expectRevert(IsUSDe_Burner.InvalidAsset.selector);
+        burner.triggerBurn(USDE);
+    }
+
+    function test_ApproveUSDeMinter(uint256 depositAmount1, uint24 duration) public {
+        duration = uint24(bound(duration, 1, 90 days));
+
+        vm.startPrank(DEFAULT_ADMIN);
+        ISUSDe(COLLATERAL).setCooldownDuration(duration);
+        vm.stopPrank();
+
+        depositAmount1 = bound(depositAmount1, 1e9, 2_000_000 ether);
+
+        burner = new sUSDe_Burner(COLLATERAL, address(new sUSDe_Miniburner(COLLATERAL)));
+        vm.deal(address(burner), 0);
+
+        vm.startPrank(address(burner));
+        IERC20(USDE).approve(MINTER, 0);
+        vm.stopPrank();
+
+        assertEq(IERC20(USDE).allowance(address(burner), IUSDe(USDE).minter()), 0);
+
+        burner.approveUSDeMinter();
+
+        assertEq(IERC20(USDE).allowance(address(burner), IUSDe(USDE).minter()), type(uint256).max);
+    }
+
+    function test_ApproveUSDeMinterRevertSufficientAllowance(uint256 depositAmount1, uint24 duration) public {
+        duration = uint24(bound(duration, 1, 90 days));
+
+        vm.startPrank(DEFAULT_ADMIN);
+        ISUSDe(COLLATERAL).setCooldownDuration(duration);
+        vm.stopPrank();
+
+        depositAmount1 = bound(depositAmount1, 1e9, 2_000_000 ether);
+
+        burner = new sUSDe_Burner(COLLATERAL, address(new sUSDe_Miniburner(COLLATERAL)));
+        vm.deal(address(burner), 0);
+
+        vm.startPrank(address(burner));
+        IERC20(USDE).approve(MINTER, 0);
+        vm.stopPrank();
+
+        burner.approveUSDeMinter();
+
+        vm.expectRevert(IsUSDe_Burner.SufficientApproval.selector);
+        burner.approveUSDeMinter();
+    }
 }

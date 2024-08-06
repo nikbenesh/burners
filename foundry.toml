@@ -6,6 +6,7 @@ out = "out"
 libs = ["lib"]
 fs_permissions = [{ access = "read-write", path = "./"}]
 gas_reports = ["*"]
+evm_version = "shanghai"
 
 [rpc_endpoints]
 mainnet = "${ETH_RPC_URL}"

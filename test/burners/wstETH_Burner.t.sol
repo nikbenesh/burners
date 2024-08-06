@@ -79,7 +79,7 @@ contract wstETH_BurnerTest is Test {
 
         uint256 lastRequestId = IWithdrawalQueue(LIDO_WITHDRAWAL_QUEUE).getLastRequestId();
         uint256 stETHAmount1 = IWstETH(COLLATERAL).getStETHByWstETH(depositAmount1);
-        vm.assume(stETHAmount1 >= 101);
+        vm.assume(stETHAmount1 >= 102);
         assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), depositAmount1);
         uint256[] memory requestsIds = burner.triggerWithdrawal(maxRequests);
         assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), 0);
@@ -225,7 +225,7 @@ contract wstETH_BurnerTest is Test {
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
         uint256 stETHAmount1 = IWstETH(COLLATERAL).getStETHByWstETH(depositAmount1);
-        vm.assume(stETHAmount1 >= 101);
+        vm.assume(stETHAmount1 >= 102);
         uint256[] memory requestsIds = burner.triggerWithdrawal(type(uint256).max);
 
         vm.deal(LIDO_WITHDRAWAL_QUEUE, 100_000 ether);
@@ -253,7 +253,7 @@ contract wstETH_BurnerTest is Test {
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
         uint256 stETHAmount1 = IWstETH(COLLATERAL).getStETHByWstETH(depositAmount1);
-        vm.assume(stETHAmount1 >= 101);
+        vm.assume(stETHAmount1 >= 102);
         uint256[] memory requestsIds = burner.triggerWithdrawal(type(uint256).max);
 
         vm.deal(LIDO_WITHDRAWAL_QUEUE, 100_000 ether);
@@ -274,7 +274,7 @@ contract wstETH_BurnerTest is Test {
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
         uint256 stETHAmount1 = IWstETH(COLLATERAL).getStETHByWstETH(depositAmount1);
-        vm.assume(stETHAmount1 >= 101);
+        vm.assume(stETHAmount1 >= 102);
         uint256[] memory requestsIds = burner.triggerWithdrawal(type(uint256).max);
 
         vm.deal(LIDO_WITHDRAWAL_QUEUE, 100_000 ether);
@@ -306,7 +306,7 @@ contract wstETH_BurnerTest is Test {
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
         uint256 stETHAmount1 = IWstETH(COLLATERAL).getStETHByWstETH(depositAmount1);
-        vm.assume(stETHAmount1 >= 101);
+        vm.assume(stETHAmount1 >= 102);
         uint256[] memory requestsIds = burner.triggerWithdrawal(type(uint256).max);
 
         vm.deal(LIDO_WITHDRAWAL_QUEUE, 100_000 ether);

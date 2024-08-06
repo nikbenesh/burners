@@ -28,7 +28,6 @@ contract sUSDe_Miniburner is OwnableUpgradeable {
     }
 
     function triggerBurn() external onlyOwner {
-        ISUSDe(_COLLATERAL).unstake(address(this));
-        IUSDe(_USDE).burn(IERC20(_USDE).balanceOf(address(this)));
+        ISUSDe(_COLLATERAL).unstake(owner());
     }
 }
