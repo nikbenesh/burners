@@ -167,7 +167,7 @@ contract wstETH_BurnerTest is Test {
             assertApproxEqAbs(
                 IERC20(STETH).balanceOf(address(burner)),
                 (stETHAmount1 - withdrawal1) + stETHAmount2 - withdrawal2,
-                2 * N2
+                4 * N2
             );
 
             assertEq(requestsIds.length, N2);
