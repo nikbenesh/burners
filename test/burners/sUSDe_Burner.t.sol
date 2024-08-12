@@ -303,7 +303,7 @@ contract sUSDe_BurnerTest is Test {
 
         uint256 balanceBefore = address(burner).balance;
         burner.triggerBurn(address(0));
-        assertEq(address(burner).balance - balanceBefore, depositAmount1);
+        assertEq(balanceBefore - address(burner).balance, depositAmount1);
     }
 
     function test_TriggerBurnRevertInvalidAsset1(uint256 depositAmount1, uint24 duration) public {
