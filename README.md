@@ -8,10 +8,6 @@ This repository contains Symbiotic Default Burners contracts.
 
 Technical documentation can be found [here](./specs).
 
-## Security
-
-Security audits can be found [here](./audits).
-
 ## Usage
 
 ### Env
