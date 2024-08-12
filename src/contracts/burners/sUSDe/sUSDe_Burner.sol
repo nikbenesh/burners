@@ -2,19 +2,25 @@
 pragma solidity 0.8.25;
 
 import {AddressRequests} from "src/contracts/AddressRequests.sol";
+import {SelfDestruct} from "src/contracts/SelfDestruct.sol";
 import {sUSDe_Miniburner} from "./sUSDe_Miniburner.sol";
 
+import {IEthenaMinting} from "src/interfaces/burners/sUSDe/IEthenaMinting.sol";
 import {ISUSDe} from "src/interfaces/burners/sUSDe/ISUSDe.sol";
 import {IUSDe} from "src/interfaces/burners/sUSDe/IUSDe.sol";
 import {IsUSDe_Burner} from "src/interfaces/burners/sUSDe/IsUSDe_Burner.sol";
 
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
+import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract sUSDe_Burner is AddressRequests, IsUSDe_Burner {
+contract sUSDe_Burner is AddressRequests, IERC1271, IsUSDe_Burner {
     using Clones for address;
+    using SafeERC20 for IERC20;
 
     address private constant _DEAD = address(0xdEaD);
+
+    bytes4 private constant _MAGICVALUE = bytes4(keccak256("isValidSignature(bytes32,bytes)"));
 
     /**
      * @inheritdoc IsUSDe_Burner
@@ -34,6 +40,19 @@ contract sUSDe_Burner is AddressRequests, IsUSDe_Burner {
         USDE = ISUSDe(COLLATERAL).asset();
 
         _MINIBURNER_IMPLEMENTATION = implementation;
+
+        IERC20(USDE).forceApprove(IUSDe(USDE).minter(), type(uint256).max);
+    }
+
+    /**
+     * @inheritdoc IERC1271
+     */
+    function isValidSignature(bytes32 hash_, bytes memory signature) external view returns (bytes4) {
+        IEthenaMinting.Order memory order = abi.decode(signature, (IEthenaMinting.Order));
+
+        if (hash_ == IEthenaMinting(IUSDe(USDE).minter()).hashOrder(order) && order.beneficiary == address(this)) {
+            return _MAGICVALUE;
+        }
     }
 
     /**
@@ -53,32 +72,63 @@ contract sUSDe_Burner is AddressRequests, IsUSDe_Burner {
 
         _addRequestId(requestId);
 
-        emit TriggerWithdrawal(msg.sender, requestId);
+        emit TriggerWithdrawal(msg.sender, amount, requestId);
     }
 
     /**
      * @inheritdoc IsUSDe_Burner
      */
-    function triggerBurn(address requestId) external {
+    function triggerClaim(address requestId) external {
         _removeRequestId(requestId);
 
         sUSDe_Miniburner(requestId).triggerBurn();
 
-        emit TriggerBurn(msg.sender, requestId);
+        emit TriggerClaim(msg.sender, requestId);
     }
 
     /**
      * @inheritdoc IsUSDe_Burner
      */
-    function triggerInstantBurn() external {
+    function triggerInstantClaim() external {
         if (ISUSDe(COLLATERAL).cooldownDuration() != 0) {
             revert HasCooldown();
         }
 
         uint256 amount = IERC20(COLLATERAL).balanceOf(address(this));
 
-        IUSDe(USDE).burn(ISUSDe(COLLATERAL).redeem(amount, address(this), address(this)));
+        ISUSDe(COLLATERAL).redeem(amount, address(this), address(this));
 
-        emit TriggerInstantBurn(msg.sender, amount);
+        emit TriggerInstantClaim(msg.sender, amount);
+    }
+
+    /**
+     * @inheritdoc IsUSDe_Burner
+     */
+    function triggerBurn(address asset) external {
+        if (asset == COLLATERAL || asset == USDE) {
+            revert InvalidAsset();
+        }
+
+        uint256 amount;
+        if (asset == address(0)) {
+            amount = address(this).balance;
+            new SelfDestruct{value: amount}();
+        } else {
+            amount = IERC20(asset).balanceOf(address(this));
+            IERC20(asset).safeTransfer(_DEAD, amount);
+        }
+
+        emit TriggerBurn(msg.sender, asset, amount);
+    }
+
+    /**
+     * @inheritdoc IsUSDe_Burner
+     */
+    function approveUSDeMinter() external {
+        address minter = IUSDe(USDE).minter();
+        if (IERC20(USDE).allowance(address(this), minter) == type(uint256).max) {
+            revert SufficientApproval();
+        }
+        IERC20(USDE).forceApprove(minter, type(uint256).max);
     }
 }
