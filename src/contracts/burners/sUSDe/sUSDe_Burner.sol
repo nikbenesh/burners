@@ -41,7 +41,7 @@ contract sUSDe_Burner is AddressRequests, IERC1271, IsUSDe_Burner {
 
         _MINIBURNER_IMPLEMENTATION = implementation;
 
-        IERC20(USDE).approve(IUSDe(USDE).minter(), type(uint256).max);
+        IERC20(USDE).forceApprove(IUSDe(USDE).minter(), type(uint256).max);
     }
 
     /**
@@ -129,6 +129,6 @@ contract sUSDe_Burner is AddressRequests, IERC1271, IsUSDe_Burner {
         if (IERC20(USDE).allowance(address(this), minter) == type(uint256).max) {
             revert SufficientApproval();
         }
-        IERC20(USDE).approve(minter, type(uint256).max);
+        IERC20(USDE).forceApprove(minter, type(uint256).max);
     }
 }

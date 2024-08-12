@@ -214,7 +214,7 @@ contract sUSDe_BurnerTest is Test {
         burner.triggerInstantClaim();
     }
 
-    function test_TriggerBurn(uint256 depositAmount1, uint24 duration) public {
+    function test_TriggerBurn1(uint256 depositAmount1, uint24 duration) public {
         duration = uint24(bound(duration, 1, 90 days));
 
         vm.startPrank(DEFAULT_ADMIN);
@@ -285,6 +285,25 @@ contract sUSDe_BurnerTest is Test {
 
         assertEq(balanceBefore - IERC20(USDT).balanceOf(address(burner)), usdeAmount / 1e12);
         assertEq(IERC20(USDT).balanceOf(address(0xdEaD)) - balanceBefore2, usdeAmount / 1e12);
+    }
+
+    function test_TriggerBurn2(uint256 depositAmount1, uint24 duration) public {
+        duration = uint24(bound(duration, 1, 90 days));
+
+        vm.startPrank(DEFAULT_ADMIN);
+        ISUSDe(COLLATERAL).setCooldownDuration(duration);
+        vm.stopPrank();
+
+        depositAmount1 = bound(depositAmount1, 1e9, 2_000_000 ether);
+
+        burner = new sUSDe_Burner(COLLATERAL, address(new sUSDe_Miniburner(COLLATERAL)));
+        vm.deal(address(burner), 0);
+
+        vm.deal(address(burner), depositAmount1);
+
+        uint256 balanceBefore = address(burner).balance;
+        burner.triggerBurn(address(0));
+        assertEq(address(burner).balance - balanceBefore, depositAmount1);
     }
 
     function test_TriggerBurnRevertInvalidAsset1(uint256 depositAmount1, uint24 duration) public {
