@@ -3,13 +3,14 @@ pragma solidity 0.8.25;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {ETHx_Burner} from "src/contracts/burners/ETHx_Burner.sol";
+import {ETHx_Burner} from "src/contracts/burners/ETHx/ETHx_Burner.sol";
+import {ETHx_Miniburner} from "src/contracts/burners/ETHx/ETHx_Miniburner.sol";
 
 import {IETHx_Burner} from "src/interfaces/burners/ETHx/IETHx_Burner.sol";
 import {IStaderConfig} from "src/interfaces/burners/ETHx/IStaderConfig.sol";
 import {IStaderStakePoolsManager} from "src/interfaces/burners/ETHx/IStaderStakePoolsManager.sol";
 import {IUserWithdrawalManager} from "src/interfaces/burners/ETHx/IUserWithdrawalManager.sol";
-import {IUintRequests} from "src/interfaces/IUintRequests.sol";
+import {IAddressRequests} from "src/interfaces/IAddressRequests.sol";
 
 import {IERC20, IWETH} from "test/mocks/AaveV3Borrow.sol";
 
@@ -73,7 +74,8 @@ contract ETHx_BurnerTest is Test {
     }
 
     function test_Create() public {
-        burner = new ETHx_Burner(COLLATERAL, STADER_CONFIG);
+        address miniburner = address(new ETHx_Miniburner(COLLATERAL, STADER_CONFIG));
+        burner = new ETHx_Burner(COLLATERAL, STADER_CONFIG, miniburner);
         vm.deal(address(burner), 0);
 
         assertEq(burner.COLLATERAL(), COLLATERAL);
@@ -93,7 +95,8 @@ contract ETHx_BurnerTest is Test {
         depositAmount2 = bound(depositAmount2, withdrawRequestMinimum / 2, 50_000 ether);
         maxRequests = bound(maxRequests, 1, type(uint256).max);
 
-        burner = new ETHx_Burner(COLLATERAL, STADER_CONFIG);
+        address miniburner = address(new ETHx_Miniburner(COLLATERAL, STADER_CONFIG));
+        burner = new ETHx_Burner(COLLATERAL, STADER_CONFIG, miniburner);
         vm.deal(address(burner), 0);
 
         TempStruct memory temp = TempStruct({
@@ -108,7 +111,7 @@ contract ETHx_BurnerTest is Test {
                 >= IStaderConfig(STADER_CONFIG).getMinWithdrawAmount()
         );
 
-        (uint256 firstRequestId, uint256 lastRequestId) =
+        address[] memory requestIds =
             burner.triggerWithdrawal(withdrawRequestMinimum, withdrawRequestMaximum, maxRequests);
 
         uint256 N1 = depositAmount1 / withdrawRequestMaximum;
@@ -131,28 +134,28 @@ contract ETHx_BurnerTest is Test {
 
         assertEq(IERC20(COLLATERAL).balanceOf(address(burner)), depositAmount1 - withdrawal1);
 
-        assertEq(firstRequestId, temp.firstRequestId_);
-        assertEq(lastRequestId, temp.firstRequestId_ + N1 - 1);
+        assertEq(burner.requestIdInternal(requestIds[0]), temp.firstRequestId_);
+        assertEq(burner.requestIdInternal(requestIds[requestIds.length - 1]), temp.firstRequestId_ + N1 - 1);
         assertEq(burner.requestIdsLength(), N1);
-        uint256[] memory requestsIds = burner.requestIds(0, type(uint256).max);
-        assertEq(requestsIds.length, N1);
+        address[] memory requestIds_ = burner.requestIds(0, type(uint256).max);
+        assertEq(requestIds_.length, N1);
         for (uint256 i; i < N1; ++i) {
-            assertEq(requestsIds[i], temp.firstRequestId_ + i);
+            assertEq(burner.requestIdInternal(requestIds_[i]), temp.firstRequestId_ + i);
         }
-        requestsIds = burner.requestIds(0, 0);
-        assertEq(requestsIds.length, 0);
-        requestsIds = burner.requestIds(0, 1);
-        assertEq(requestsIds.length, 1);
-        assertEq(requestsIds[0], temp.firstRequestId_);
+        requestIds_ = burner.requestIds(0, 0);
+        assertEq(requestIds_.length, 0);
+        requestIds_ = burner.requestIds(0, 1);
+        assertEq(requestIds_.length, 1);
+        assertEq(burner.requestIdInternal(requestIds_[0]), temp.firstRequestId_);
         if (N1 > 1) {
-            requestsIds = burner.requestIds(1, 1);
-            assertEq(requestsIds.length, 1);
-            assertEq(requestsIds[0], temp.firstRequestId_ + 1);
+            requestIds_ = burner.requestIds(1, 1);
+            assertEq(requestIds_.length, 1);
+            assertEq(burner.requestIdInternal(requestIds_[0]), temp.firstRequestId_ + 1);
 
-            requestsIds = burner.requestIds(1, 11_111);
-            assertEq(requestsIds.length, N1 - 1);
+            requestIds_ = burner.requestIds(1, 11_111);
+            assertEq(requestIds_.length, N1 - 1);
             for (uint256 i; i < N1 - 1; ++i) {
-                assertEq(requestsIds[i], temp.firstRequestId_ + i + 1);
+                assertEq(burner.requestIdInternal(requestIds_[i]), temp.firstRequestId_ + i + 1);
             }
         }
 
@@ -164,8 +167,7 @@ contract ETHx_BurnerTest is Test {
                 ) >= IStaderConfig(STADER_CONFIG).getMinWithdrawAmount()
             );
 
-            (firstRequestId, lastRequestId) =
-                burner.triggerWithdrawal(withdrawRequestMinimum, withdrawRequestMaximum, maxRequests);
+            requestIds = burner.triggerWithdrawal(withdrawRequestMinimum, withdrawRequestMaximum, maxRequests);
 
             uint256 N2 = (depositAmount2 + (depositAmount1 - withdrawal1)) / withdrawRequestMaximum;
             if ((depositAmount2 + (depositAmount1 - withdrawal1)) % withdrawRequestMaximum >= withdrawRequestMinimum) {
@@ -192,28 +194,29 @@ contract ETHx_BurnerTest is Test {
                 (depositAmount1 - withdrawal1) + depositAmount2 - withdrawal2
             );
 
-            assertEq(firstRequestId, temp.firstRequestId_ + N1);
-            assertEq(lastRequestId, temp.firstRequestId_ + N1 + N2 - 1);
-            assertEq(burner.requestIdsLength(), N1 + N2);
-            requestsIds = burner.requestIds(0, type(uint256).max);
-            assertEq(requestsIds.length, N1 + N2);
-            for (uint256 i; i < N1 + N2; ++i) {
-                assertEq(requestsIds[i], temp.firstRequestId_ + i);
-            }
-            requestsIds = burner.requestIds(0, 0);
-            assertEq(requestsIds.length, 0);
-            requestsIds = burner.requestIds(0, 1);
-            assertEq(requestsIds.length, 1);
-            assertEq(requestsIds[0], temp.firstRequestId_);
-            if (N1 + N2 > 1) {
-                requestsIds = burner.requestIds(1, 1);
-                assertEq(requestsIds.length, 1);
-                assertEq(requestsIds[0], temp.firstRequestId_ + 1);
+            assertEq(burner.requestIdInternal(requestIds[0]), temp.firstRequestId_ + N1);
+            assertEq(burner.requestIdInternal(requestIds[requestIds.length - 1]), temp.firstRequestId_ + N1 + N2 - 1);
 
-                requestsIds = burner.requestIds(1, 11_111);
-                assertEq(requestsIds.length, N1 + N2 - 1);
+            assertEq(burner.requestIdsLength(), N1 + N2);
+            requestIds_ = burner.requestIds(0, type(uint256).max);
+            assertEq(requestIds_.length, N1 + N2);
+            for (uint256 i; i < N1 + N2; ++i) {
+                assertEq(burner.requestIdInternal(requestIds_[i]), temp.firstRequestId_ + i);
+            }
+            requestIds_ = burner.requestIds(0, 0);
+            assertEq(requestIds_.length, 0);
+            requestIds_ = burner.requestIds(0, 1);
+            assertEq(requestIds_.length, 1);
+            assertEq(burner.requestIdInternal(requestIds_[0]), temp.firstRequestId_);
+            if (N1 + N2 > 1) {
+                requestIds_ = burner.requestIds(1, 1);
+                assertEq(requestIds_.length, 1);
+                assertEq(burner.requestIdInternal(requestIds_[0]), temp.firstRequestId_ + 1);
+
+                requestIds_ = burner.requestIds(1, 11_111);
+                assertEq(requestIds_.length, N1 + N2 - 1);
                 for (uint256 i; i < N1 + N2 - 1; ++i) {
-                    assertEq(requestsIds[i], temp.firstRequestId_ + i + 1);
+                    assertEq(burner.requestIdInternal(requestIds_[i]), temp.firstRequestId_ + i + 1);
                 }
             }
         }
@@ -232,7 +235,8 @@ contract ETHx_BurnerTest is Test {
         withdrawRequestMinimum_ = bound(withdrawRequestMinimum_, 0, type(uint128).max);
         withdrawRequestMaximum_ = bound(withdrawRequestMaximum_, 0, type(uint128).max);
 
-        burner = new ETHx_Burner(COLLATERAL, STADER_CONFIG);
+        address miniburner = address(new ETHx_Miniburner(COLLATERAL, STADER_CONFIG));
+        burner = new ETHx_Burner(COLLATERAL, STADER_CONFIG, miniburner);
         vm.deal(address(burner), 0);
 
         vm.assume(withdrawRequestMinimum_ != withdrawRequestMinimum);
@@ -245,7 +249,8 @@ contract ETHx_BurnerTest is Test {
     function test_TriggerWithdrawalRevertInsufficientWithdrawal(uint256 depositAmount1) public {
         depositAmount1 = bound(depositAmount1, 1, withdrawRequestMinimum - 1);
 
-        burner = new ETHx_Burner(COLLATERAL, STADER_CONFIG);
+        address miniburner = address(new ETHx_Miniburner(COLLATERAL, STADER_CONFIG));
+        burner = new ETHx_Burner(COLLATERAL, STADER_CONFIG, miniburner);
         vm.deal(address(burner), 0);
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
@@ -260,50 +265,58 @@ contract ETHx_BurnerTest is Test {
     function test_TriggerBurn(uint256 depositAmount1) public {
         depositAmount1 = bound(depositAmount1, withdrawRequestMinimum, 50_000 ether);
 
-        burner = new ETHx_Burner(COLLATERAL, STADER_CONFIG);
+        address miniburner = address(new ETHx_Miniburner(COLLATERAL, STADER_CONFIG));
+        burner = new ETHx_Burner(COLLATERAL, STADER_CONFIG, miniburner);
         vm.deal(address(burner), 0);
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
-        (uint256 firstRequestId, uint256 lastRequestId) =
+        address[] memory requestIds =
             burner.triggerWithdrawal(withdrawRequestMinimum, withdrawRequestMaximum, type(uint256).max);
 
         vm.roll(block.number + IStaderConfig(STADER_CONFIG).getMinBlockDelayToFinalizeWithdrawRequest());
         vm.deal(STAKE_POOLS_MANAGER, 500_000 ether);
-        while (IUserWithdrawalManager(USER_WITHDRAW_MANAGER).nextRequestIdToFinalize() <= lastRequestId) {
+        while (
+            IUserWithdrawalManager(USER_WITHDRAW_MANAGER).nextRequestIdToFinalize()
+                <= burner.requestIdInternal(requestIds[requestIds.length - 1])
+        ) {
             IUserWithdrawalManager(USER_WITHDRAW_MANAGER).finalizeUserWithdrawalRequest();
         }
 
         assertEq(address(burner).balance, 0);
-        burner.triggerBurn(firstRequestId);
+        burner.triggerBurn(requestIds[0]);
         assertEq(address(burner).balance, 0);
 
-        uint256[] memory requestsIds = burner.requestIds(0, type(uint256).max);
-        assertEq(requestsIds.length, lastRequestId - firstRequestId);
-        for (uint256 i; i < requestsIds.length; ++i) {
-            assertTrue(firstRequestId != requestsIds[i]);
+        address[] memory requestIds_ = burner.requestIds(0, type(uint256).max);
+        assertEq(requestIds_.length, requestIds.length - 1);
+        for (uint256 i; i < requestIds_.length; ++i) {
+            assertTrue(requestIds[0] != requestIds_[i]);
         }
     }
 
     function test_TriggerBurnRevertInvalidRequestId(uint256 depositAmount1) public {
         depositAmount1 = bound(depositAmount1, withdrawRequestMinimum, 50_000 ether);
 
-        burner = new ETHx_Burner(COLLATERAL, STADER_CONFIG);
+        address miniburner = address(new ETHx_Miniburner(COLLATERAL, STADER_CONFIG));
+        burner = new ETHx_Burner(COLLATERAL, STADER_CONFIG, miniburner);
         vm.deal(address(burner), 0);
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
-        (, uint256 lastRequestId) =
+        address[] memory requestIds =
             burner.triggerWithdrawal(withdrawRequestMinimum, withdrawRequestMaximum, type(uint256).max);
 
         vm.roll(block.number + IStaderConfig(STADER_CONFIG).getMinBlockDelayToFinalizeWithdrawRequest());
         vm.deal(STAKE_POOLS_MANAGER, 500_000 ether);
-        while (IUserWithdrawalManager(USER_WITHDRAW_MANAGER).nextRequestIdToFinalize() <= lastRequestId) {
+        while (
+            IUserWithdrawalManager(USER_WITHDRAW_MANAGER).nextRequestIdToFinalize()
+                <= burner.requestIdInternal(requestIds[requestIds.length - 1])
+        ) {
             IUserWithdrawalManager(USER_WITHDRAW_MANAGER).finalizeUserWithdrawalRequest();
         }
 
-        vm.expectRevert(IUintRequests.InvalidRequestId.selector);
-        burner.triggerBurn(0);
+        vm.expectRevert(IAddressRequests.InvalidRequestId.selector);
+        burner.triggerBurn(address(0));
     }
 }
 
