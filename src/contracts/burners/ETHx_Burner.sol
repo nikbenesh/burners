@@ -48,15 +48,25 @@ contract ETHx_Burner is UintRequests, IETHx_Burner {
     /**
      * @inheritdoc IETHx_Burner
      */
-    function triggerWithdrawal(uint256 maxRequests) external returns (uint256 firstRequestId, uint256 lastRequestId) {
-        uint256 amount = IERC20(COLLATERAL).balanceOf(address(this));
+    function triggerWithdrawal(
+        uint256 minWithdrawalAmount,
+        uint256 maxWithdrawalAmount,
+        uint256 maxRequests
+    ) external returns (uint256 firstRequestId, uint256 lastRequestId) {
+        uint256 minETHWithdrawAmount = IStaderConfig(STADER_CONFIG).getMinWithdrawAmount();
+        uint256 maxETHWithdrawAmount = IStaderConfig(STADER_CONFIG).getMaxWithdrawAmount();
+        if (
+            IStaderStakePoolsManager(STAKE_POOLS_MANAGER).previewWithdraw(minWithdrawalAmount) < minETHWithdrawAmount
+                || IStaderStakePoolsManager(STAKE_POOLS_MANAGER).previewWithdraw(minWithdrawalAmount - 1)
+                    >= minETHWithdrawAmount
+                || IStaderStakePoolsManager(STAKE_POOLS_MANAGER).previewWithdraw(maxWithdrawalAmount) > maxETHWithdrawAmount
+                || IStaderStakePoolsManager(STAKE_POOLS_MANAGER).previewWithdraw(maxWithdrawalAmount + 1)
+                    <= maxETHWithdrawAmount
+        ) {
+            revert InvalidHints();
+        }
 
-        uint256 maxWithdrawalAmount = IStaderStakePoolsManager(STAKE_POOLS_MANAGER).previewDeposit(
-            IStaderConfig(STADER_CONFIG).getMaxWithdrawAmount()
-        );
-        uint256 minWithdrawalAmount = IStaderStakePoolsManager(STAKE_POOLS_MANAGER).previewDeposit(
-            IStaderConfig(STADER_CONFIG).getMinWithdrawAmount()
-        ) + 1;
+        uint256 amount = IERC20(COLLATERAL).balanceOf(address(this));
 
         uint256 requests = amount / maxWithdrawalAmount;
         if (amount % maxWithdrawalAmount >= minWithdrawalAmount) {

@@ -5,6 +5,7 @@ import {IUintRequests} from "src/interfaces/IUintRequests.sol";
 
 interface IETHx_Burner is IUintRequests {
     error InsufficientWithdrawal();
+    error InvalidHints();
 
     /**
      * @notice Emitted when a withdrawal is triggered.
@@ -43,11 +44,16 @@ interface IETHx_Burner is IUintRequests {
 
     /**
      * @notice Trigger a withdrawal of ETH from the collateral's underlying asset.
-     * @param maxRequests maximum number of withdrawal requests to create
+     * @param minWithdrawalAmount minimum amount of ETHx it is possible to withdraw
+     * @param maxRequests maximum number of ETHx it is possible to withdraw in one request
      * @return firstRequestId first request ID that was created
      * @return lastRequestId last request ID that was created
      */
-    function triggerWithdrawal(uint256 maxRequests) external returns (uint256 firstRequestId, uint256 lastRequestId);
+    function triggerWithdrawal(
+        uint256 minWithdrawalAmount,
+        uint256 maxWithdrawalAmount,
+        uint256 maxRequests
+    ) external returns (uint256 firstRequestId, uint256 lastRequestId);
 
     /**
      * @notice Trigger a claim and a burn of ETH.

@@ -51,12 +51,25 @@ contract ETHx_BurnerTest is Test {
         IETHx(COLLATERAL).mint(address(this), 500_000 ether);
         vm.stopPrank();
 
-        withdrawRequestMaximum = IStaderStakePoolsManager(STAKE_POOLS_MANAGER).previewDeposit(
-            IStaderConfig(STADER_CONFIG).getMaxWithdrawAmount()
-        );
         withdrawRequestMinimum = IStaderStakePoolsManager(STAKE_POOLS_MANAGER).previewDeposit(
             IStaderConfig(STADER_CONFIG).getMinWithdrawAmount()
         ) + 1;
+        while (
+            IStaderStakePoolsManager(STAKE_POOLS_MANAGER).previewWithdraw(withdrawRequestMinimum - 1)
+                >= IStaderConfig(STADER_CONFIG).getMinWithdrawAmount()
+        ) {
+            withdrawRequestMinimum -= 1;
+        }
+
+        withdrawRequestMaximum = IStaderStakePoolsManager(STAKE_POOLS_MANAGER).previewDeposit(
+            IStaderConfig(STADER_CONFIG).getMaxWithdrawAmount()
+        );
+        while (
+            IStaderStakePoolsManager(STAKE_POOLS_MANAGER).previewWithdraw(withdrawRequestMaximum + 1)
+                <= IStaderConfig(STADER_CONFIG).getMaxWithdrawAmount()
+        ) {
+            withdrawRequestMaximum += 1;
+        }
     }
 
     function test_Create() public {
@@ -95,7 +108,8 @@ contract ETHx_BurnerTest is Test {
                 >= IStaderConfig(STADER_CONFIG).getMinWithdrawAmount()
         );
 
-        (uint256 firstRequestId, uint256 lastRequestId) = burner.triggerWithdrawal(maxRequests);
+        (uint256 firstRequestId, uint256 lastRequestId) =
+            burner.triggerWithdrawal(withdrawRequestMinimum, withdrawRequestMaximum, maxRequests);
 
         uint256 N1 = depositAmount1 / withdrawRequestMaximum;
         if (depositAmount1 % withdrawRequestMaximum >= withdrawRequestMinimum) {
@@ -150,7 +164,8 @@ contract ETHx_BurnerTest is Test {
                 ) >= IStaderConfig(STADER_CONFIG).getMinWithdrawAmount()
             );
 
-            (firstRequestId, lastRequestId) = burner.triggerWithdrawal(maxRequests);
+            (firstRequestId, lastRequestId) =
+                burner.triggerWithdrawal(withdrawRequestMinimum, withdrawRequestMaximum, maxRequests);
 
             uint256 N2 = (depositAmount2 + (depositAmount1 - withdrawal1)) / withdrawRequestMaximum;
             if ((depositAmount2 + (depositAmount1 - withdrawal1)) % withdrawRequestMaximum >= withdrawRequestMinimum) {
@@ -204,6 +219,29 @@ contract ETHx_BurnerTest is Test {
         }
     }
 
+    function test_TriggerWithdrawalRevertInvalidHints(
+        uint256 depositAmount1,
+        uint256 depositAmount2,
+        uint256 maxRequests,
+        uint256 withdrawRequestMinimum_,
+        uint256 withdrawRequestMaximum_
+    ) public {
+        depositAmount1 = bound(depositAmount1, withdrawRequestMinimum / 2, 50_000 ether);
+        depositAmount2 = bound(depositAmount2, withdrawRequestMinimum / 2, 50_000 ether);
+        maxRequests = bound(maxRequests, 1, type(uint256).max);
+        withdrawRequestMinimum_ = bound(withdrawRequestMinimum_, 0, type(uint128).max);
+        withdrawRequestMaximum_ = bound(withdrawRequestMaximum_, 0, type(uint128).max);
+
+        burner = new ETHx_Burner(COLLATERAL, STADER_CONFIG);
+        vm.deal(address(burner), 0);
+
+        vm.assume(withdrawRequestMinimum_ != withdrawRequestMinimum);
+        vm.assume(withdrawRequestMaximum_ != withdrawRequestMaximum);
+
+        vm.expectRevert(IETHx_Burner.InvalidHints.selector);
+        burner.triggerWithdrawal(withdrawRequestMinimum_, withdrawRequestMaximum_, maxRequests);
+    }
+
     function test_TriggerWithdrawalRevertInsufficientWithdrawal(uint256 depositAmount1) public {
         depositAmount1 = bound(depositAmount1, 1, withdrawRequestMinimum - 1);
 
@@ -213,10 +251,10 @@ contract ETHx_BurnerTest is Test {
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
         vm.expectRevert(IETHx_Burner.InsufficientWithdrawal.selector);
-        burner.triggerWithdrawal(0);
+        burner.triggerWithdrawal(withdrawRequestMinimum, withdrawRequestMaximum, 0);
 
         vm.expectRevert(IETHx_Burner.InsufficientWithdrawal.selector);
-        burner.triggerWithdrawal(1);
+        burner.triggerWithdrawal(withdrawRequestMinimum, withdrawRequestMaximum, 1);
     }
 
     function test_TriggerBurn(uint256 depositAmount1) public {
@@ -227,7 +265,8 @@ contract ETHx_BurnerTest is Test {
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
-        (uint256 firstRequestId, uint256 lastRequestId) = burner.triggerWithdrawal(type(uint256).max);
+        (uint256 firstRequestId, uint256 lastRequestId) =
+            burner.triggerWithdrawal(withdrawRequestMinimum, withdrawRequestMaximum, type(uint256).max);
 
         vm.roll(block.number + IStaderConfig(STADER_CONFIG).getMinBlockDelayToFinalizeWithdrawRequest());
         vm.deal(STAKE_POOLS_MANAGER, 500_000 ether);
@@ -254,7 +293,8 @@ contract ETHx_BurnerTest is Test {
 
         IERC20(COLLATERAL).transfer(address(burner), depositAmount1);
 
-        (, uint256 lastRequestId) = burner.triggerWithdrawal(type(uint256).max);
+        (, uint256 lastRequestId) =
+            burner.triggerWithdrawal(withdrawRequestMinimum, withdrawRequestMaximum, type(uint256).max);
 
         vm.roll(block.number + IStaderConfig(STADER_CONFIG).getMinBlockDelayToFinalizeWithdrawRequest());
         vm.deal(STAKE_POOLS_MANAGER, 500_000 ether);
