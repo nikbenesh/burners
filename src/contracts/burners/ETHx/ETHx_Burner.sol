@@ -44,14 +44,14 @@ contract ETHx_Burner is AddressRequests, IETHx_Burner {
      */
     mapping(address requestId => uint256 value) public requestIdInternal;
 
-    constructor(address collateral, address staderConfig, address miniburner_implementation) {
+    constructor(address collateral, address staderConfig, address miniburnerImplementation) {
         COLLATERAL = collateral;
 
         STADER_CONFIG = staderConfig;
         USER_WITHDRAW_MANAGER = IStaderConfig(STADER_CONFIG).getUserWithdrawManager();
         STAKE_POOLS_MANAGER = IStaderConfig(STADER_CONFIG).getStakePoolManager();
 
-        _MINIBURNER_IMPLEMENTATION = miniburner_implementation;
+        _MINIBURNER_IMPLEMENTATION = miniburnerImplementation;
 
         IERC20(COLLATERAL).approve(USER_WITHDRAW_MANAGER, type(uint256).max);
     }

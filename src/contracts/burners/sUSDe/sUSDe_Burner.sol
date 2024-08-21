@@ -34,12 +34,12 @@ contract sUSDe_Burner is AddressRequests, IERC1271, IsUSDe_Burner {
 
     address private immutable _MINIBURNER_IMPLEMENTATION;
 
-    constructor(address collateral, address implementation) {
+    constructor(address collateral, address miniburnerImplementation) {
         COLLATERAL = collateral;
 
         USDE = ISUSDe(COLLATERAL).asset();
 
-        _MINIBURNER_IMPLEMENTATION = implementation;
+        _MINIBURNER_IMPLEMENTATION = miniburnerImplementation;
 
         IERC20(USDE).forceApprove(IUSDe(USDE).minter(), type(uint256).max);
     }
@@ -81,7 +81,7 @@ contract sUSDe_Burner is AddressRequests, IERC1271, IsUSDe_Burner {
     function triggerClaim(address requestId) external {
         _removeRequestId(requestId);
 
-        sUSDe_Miniburner(requestId).triggerBurn();
+        sUSDe_Miniburner(requestId).triggerClaim();
 
         emit TriggerClaim(msg.sender, requestId);
     }

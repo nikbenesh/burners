@@ -6,8 +6,6 @@ import {ISUSDe} from "src/interfaces/burners/sUSDe/ISUSDe.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract sUSDe_Miniburner is OwnableUpgradeable {
-    address private constant _DEAD = address(0xdEaD);
-
     address private immutable _COLLATERAL;
 
     address private immutable _USDE;
@@ -25,7 +23,7 @@ contract sUSDe_Miniburner is OwnableUpgradeable {
         ISUSDe(_COLLATERAL).cooldownShares(amount);
     }
 
-    function triggerBurn() external onlyOwner {
+    function triggerClaim() external onlyOwner {
         ISUSDe(_COLLATERAL).unstake(owner());
     }
 }
