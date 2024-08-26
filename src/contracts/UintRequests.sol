@@ -10,7 +10,7 @@ contract UintRequests is IUintRequests {
     using Math for uint256;
     using EnumerableSet for EnumerableSet.UintSet;
 
-    EnumerableSet.UintSet private _requestIds;
+    EnumerableSet.UintSet internal _requestIds;
 
     /**
      * @inheritdoc IUintRequests
