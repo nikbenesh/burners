@@ -58,7 +58,7 @@ contract ETHx_Burner is UintRequests, Multicall, IETHx_Burner {
                 || IStaderStakePoolsManager(STAKE_POOLS_MANAGER).previewWithdraw(maxWithdrawalAmount + 1)
                     <= maxETHWithdrawAmount
         ) {
-            revert InvalidHints();
+            revert InvalidETHxMaximumWithdrawal();
         }
 
         requestId = IUserWithdrawalManager(USER_WITHDRAW_MANAGER).requestWithdraw(

@@ -156,7 +156,7 @@ contract ETHx_BurnerTest is Test {
 
         vm.assume(withdrawRequestMaximum_ != withdrawRequestMaximum);
 
-        vm.expectRevert(IETHx_Burner.InvalidHints.selector);
+        vm.expectRevert(IETHx_Burner.InvalidETHxMaximumWithdrawal.selector);
         burner.triggerWithdrawal(withdrawRequestMaximum_);
     }
 

@@ -4,7 +4,7 @@ pragma solidity 0.8.25;
 import {IUintRequests} from "src/interfaces/IUintRequests.sol";
 
 interface IETHx_Burner is IUintRequests {
-    error InvalidHints();
+    error InvalidETHxMaximumWithdrawal();
 
     /**
      * @notice Emitted when a withdrawal is triggered.
