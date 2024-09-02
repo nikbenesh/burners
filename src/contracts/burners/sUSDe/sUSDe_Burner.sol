@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {AddressRequests} from "src/contracts/AddressRequests.sol";
-import {SelfDestruct} from "src/contracts/SelfDestruct.sol";
+import {AddressRequests} from "../../AddressRequests.sol";
+import {SelfDestruct} from "../../SelfDestruct.sol";
 import {sUSDe_Miniburner} from "./sUSDe_Miniburner.sol";
 
-import {IEthenaMinting} from "src/interfaces/burners/sUSDe/IEthenaMinting.sol";
-import {ISUSDe} from "src/interfaces/burners/sUSDe/ISUSDe.sol";
-import {IUSDe} from "src/interfaces/burners/sUSDe/IUSDe.sol";
-import {IsUSDe_Burner} from "src/interfaces/burners/sUSDe/IsUSDe_Burner.sol";
+import {IEthenaMinting} from "../../../interfaces/burners/sUSDe/IEthenaMinting.sol";
+import {ISUSDe} from "../../../interfaces/burners/sUSDe/ISUSDe.sol";
+import {IUSDe} from "../../../interfaces/burners/sUSDe/IUSDe.sol";
+import {IsUSDe_Burner} from "../../../interfaces/burners/sUSDe/IsUSDe_Burner.sol";
 
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
@@ -78,7 +78,9 @@ contract sUSDe_Burner is AddressRequests, IERC1271, IsUSDe_Burner {
     /**
      * @inheritdoc IsUSDe_Burner
      */
-    function triggerClaim(address requestId) external {
+    function triggerClaim(
+        address requestId
+    ) external {
         _removeRequestId(requestId);
 
         sUSDe_Miniburner(requestId).triggerClaim();
@@ -104,7 +106,9 @@ contract sUSDe_Burner is AddressRequests, IERC1271, IsUSDe_Burner {
     /**
      * @inheritdoc IsUSDe_Burner
      */
-    function triggerBurn(address asset) external {
+    function triggerBurn(
+        address asset
+    ) external {
         if (asset == COLLATERAL || asset == USDE) {
             revert InvalidAsset();
         }

@@ -45,7 +45,9 @@ interface IWithdrawalQueue {
     ///  Reverts if requestId or hint are not valid
     ///  Reverts if request is not finalized or already claimed
     ///  Reverts if msg sender is not an owner of request
-    function claimWithdrawal(uint256 _requestId) external;
+    function claimWithdrawal(
+        uint256 _requestId
+    ) external;
 
     /// @notice Finalize requests from last finalized one up to `_lastRequestIdToBeFinalized`
     /// @dev ether to finalize all the requests should be calculated using `prefinalize()` and sent along

@@ -19,5 +19,7 @@ interface IrETH_Burner {
      * @notice Trigger a claim and a burn of ETH.
      * @param amount amount of collateral to burn
      */
-    function triggerBurn(uint256 amount) external;
+    function triggerBurn(
+        uint256 amount
+    ) external;
 }

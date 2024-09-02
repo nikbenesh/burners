@@ -3,12 +3,12 @@ pragma solidity 0.8.25;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {wstETH_Burner} from "src/contracts/burners/wstETH_Burner.sol";
+import {wstETH_Burner} from "../../src/contracts/burners/wstETH_Burner.sol";
 
-import {IWithdrawalQueue} from "src/interfaces/burners/wstETH/IWithdrawalQueue.sol";
-import {IWstETH} from "src/interfaces/burners/wstETH/IWstETH.sol";
-import {IwstETH_Burner} from "src/interfaces/burners/wstETH/IwstETH_Burner.sol";
-import {IUintRequests} from "src/interfaces/IUintRequests.sol";
+import {IWithdrawalQueue} from "../../src/interfaces/burners/wstETH/IWithdrawalQueue.sol";
+import {IWstETH} from "../../src/interfaces/burners/wstETH/IWstETH.sol";
+import {IwstETH_Burner} from "../../src/interfaces/burners/wstETH/IwstETH_Burner.sol";
+import {IUintRequests} from "../../src/interfaces/IUintRequests.sol";
 
 import {AaveV3Borrow, IERC20, IWETH} from "test/mocks/AaveV3Borrow.sol";
 
@@ -199,7 +199,9 @@ contract wstETH_BurnerTest is Test {
         }
     }
 
-    function test_TriggerWithdrawalRevertInsufficientWithdrawal(uint256 depositAmount1) public {
+    function test_TriggerWithdrawalRevertInsufficientWithdrawal(
+        uint256 depositAmount1
+    ) public {
         depositAmount1 = bound(depositAmount1, 1, MIN_STETH_WITHDRAWAL_AMOUNT);
         uint256 stETHAmount1 = IWstETH(COLLATERAL).getStETHByWstETH(depositAmount1);
         vm.assume(stETHAmount1 < MIN_STETH_WITHDRAWAL_AMOUNT);
@@ -216,7 +218,9 @@ contract wstETH_BurnerTest is Test {
         burner.triggerWithdrawal(1);
     }
 
-    function test_TriggerBurn(uint256 depositAmount1) public {
+    function test_TriggerBurn(
+        uint256 depositAmount1
+    ) public {
         depositAmount1 = bound(depositAmount1, 50, 10_000 ether);
 
         burner = new wstETH_Burner(COLLATERAL, LIDO_WITHDRAWAL_QUEUE);
@@ -244,7 +248,9 @@ contract wstETH_BurnerTest is Test {
         }
     }
 
-    function test_TriggerBurnRevertInvalidRequestId(uint256 depositAmount1) public {
+    function test_TriggerBurnRevertInvalidRequestId(
+        uint256 depositAmount1
+    ) public {
         depositAmount1 = bound(depositAmount1, 50, 10_000 ether);
 
         burner = new wstETH_Burner(COLLATERAL, LIDO_WITHDRAWAL_QUEUE);
@@ -265,7 +271,9 @@ contract wstETH_BurnerTest is Test {
         burner.triggerBurn(0);
     }
 
-    function test_TriggerBurnBatch(uint256 depositAmount1) public {
+    function test_TriggerBurnBatch(
+        uint256 depositAmount1
+    ) public {
         depositAmount1 = bound(depositAmount1, 50, 10_000 ether);
 
         burner = new wstETH_Burner(COLLATERAL, LIDO_WITHDRAWAL_QUEUE);
@@ -297,7 +305,9 @@ contract wstETH_BurnerTest is Test {
         assertEq(requestsIds1.length, 0);
     }
 
-    function test_TriggerBurnBatchRevertInvalidRequestId(uint256 depositAmount1) public {
+    function test_TriggerBurnBatchRevertInvalidRequestId(
+        uint256 depositAmount1
+    ) public {
         depositAmount1 = bound(depositAmount1, 50, 10_000 ether);
 
         burner = new wstETH_Burner(COLLATERAL, LIDO_WITHDRAWAL_QUEUE);

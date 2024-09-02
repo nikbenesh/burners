@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {IUintRequests} from "src/interfaces/IUintRequests.sol";
+import {IUintRequests} from "../../IUintRequests.sol";
 
 interface IsfrxETH_Burner is IUintRequests {
     /**
@@ -38,5 +38,7 @@ interface IsfrxETH_Burner is IUintRequests {
      * @notice Trigger a claim and a burn of ETH.
      * @param requestId request ID of the withdrawal to process
      */
-    function triggerBurn(uint256 requestId) external;
+    function triggerBurn(
+        uint256 requestId
+    ) external;
 }

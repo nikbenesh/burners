@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {IAddressRequests} from "src/interfaces/IAddressRequests.sol";
+import {IAddressRequests} from "../../IAddressRequests.sol";
 
 interface IsUSDe_Burner is IAddressRequests {
     error HasCooldown();
@@ -59,7 +59,9 @@ interface IsUSDe_Burner is IAddressRequests {
      * @notice Trigger a claim of USDe (if `cooldownDuration` didn't equal zero while triggering withdrawal).
      * @param requestId request ID of the withdrawal to process
      */
-    function triggerClaim(address requestId) external;
+    function triggerClaim(
+        address requestId
+    ) external;
 
     /**
      * @notice Trigger an instant claim of USDe (if `cooldownDuration` equals zero).
@@ -70,7 +72,9 @@ interface IsUSDe_Burner is IAddressRequests {
      * @notice Trigger a burn of any asset lying on this contract except sUSDe and USDe (after USDe redemption).
      * @param asset address of the asset to burn
      */
-    function triggerBurn(address asset) external;
+    function triggerBurn(
+        address asset
+    ) external;
 
     /**
      * @notice Approve the USDe to a minter (if a new minter appears).

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {IUintRequests} from "src/interfaces/IUintRequests.sol";
+import {IUintRequests} from "../../IUintRequests.sol";
 
 interface IETHx_Burner is IUintRequests {
     error InvalidETHxMaximumWithdrawal();
@@ -45,11 +45,15 @@ interface IETHx_Burner is IUintRequests {
      * @param maxWithdrawalAmount maximum amount of ETHx it is possible to withdraw in one request
      * @return requestId request ID that was created
      */
-    function triggerWithdrawal(uint256 maxWithdrawalAmount) external returns (uint256 requestId);
+    function triggerWithdrawal(
+        uint256 maxWithdrawalAmount
+    ) external returns (uint256 requestId);
 
     /**
      * @notice Trigger a claim and a burn of ETH.
      * @param requestId request ID of the withdrawal to process
      */
-    function triggerBurn(uint256 requestId) external;
+    function triggerBurn(
+        uint256 requestId
+    ) external;
 }

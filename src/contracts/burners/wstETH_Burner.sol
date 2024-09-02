@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {SelfDestruct} from "src/contracts/SelfDestruct.sol";
-import {UintRequests} from "src/contracts/UintRequests.sol";
+import {SelfDestruct} from "../SelfDestruct.sol";
+import {UintRequests} from "../UintRequests.sol";
 
-import {IWithdrawalQueue} from "src/interfaces/burners/wstETH/IWithdrawalQueue.sol";
-import {IWstETH} from "src/interfaces/burners/wstETH/IWstETH.sol";
-import {IwstETH_Burner} from "src/interfaces/burners/wstETH/IwstETH_Burner.sol";
+import {IWithdrawalQueue} from "../../interfaces/burners/wstETH/IWithdrawalQueue.sol";
+import {IWstETH} from "../../interfaces/burners/wstETH/IWstETH.sol";
+import {IwstETH_Burner} from "../../interfaces/burners/wstETH/IwstETH_Burner.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
@@ -54,7 +54,9 @@ contract wstETH_Burner is UintRequests, IwstETH_Burner {
     /**
      * @inheritdoc IwstETH_Burner
      */
-    function triggerWithdrawal(uint256 maxRequests) external returns (uint256[] memory requestIds_) {
+    function triggerWithdrawal(
+        uint256 maxRequests
+    ) external returns (uint256[] memory requestIds_) {
         IWstETH(COLLATERAL).unwrap(IERC20(COLLATERAL).balanceOf(address(this)));
         uint256 stETHAmount = IERC20(STETH).balanceOf(address(this));
 
@@ -88,7 +90,9 @@ contract wstETH_Burner is UintRequests, IwstETH_Burner {
     /**
      * @inheritdoc IwstETH_Burner
      */
-    function triggerBurn(uint256 requestId) external {
+    function triggerBurn(
+        uint256 requestId
+    ) external {
         _removeRequestId(requestId);
 
         IWithdrawalQueue(LIDO_WITHDRAWAL_QUEUE).claimWithdrawal(requestId);

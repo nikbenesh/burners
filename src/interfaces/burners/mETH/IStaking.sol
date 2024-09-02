@@ -7,7 +7,9 @@ interface IStaking {
 
     /// @notice Converts from ETH to mETH using the current exchange rate.
     /// The exchange rate is given by the total supply of mETH and total ETH controlled by the protocol.
-    function mETHToETH(uint256 mETHAmount) external view returns (uint256);
+    function mETHToETH(
+        uint256 mETHAmount
+    ) external view returns (uint256);
 
     /// @notice Interface for users to submit a request to unstake.
     /// @dev Transfers the specified amount of mETH to the staking contract and locks it there until it is burned on
@@ -19,5 +21,7 @@ interface IStaking {
 
     /// @notice Interface for users to claim their finalized and filled unstaking requests.
     /// @dev See also {UnstakeRequestsManager} for a more detailed explanation of finalization and request filling.
-    function claimUnstakeRequest(uint256 unstakeRequestID) external;
+    function claimUnstakeRequest(
+        uint256 unstakeRequestID
+    ) external;
 }

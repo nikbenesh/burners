@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {SelfDestruct} from "src/contracts/SelfDestruct.sol";
-import {UintRequests} from "src/contracts/UintRequests.sol";
+import {SelfDestruct} from "../SelfDestruct.sol";
+import {UintRequests} from "../UintRequests.sol";
 
-import {IMETH} from "src/interfaces/burners/mETH/IMETH.sol";
-import {IStaking} from "src/interfaces/burners/mETH/IStaking.sol";
-import {ImETH_Burner} from "src/interfaces/burners/mETH/ImETH_Burner.sol";
+import {IMETH} from "../../interfaces/burners/mETH/IMETH.sol";
+import {IStaking} from "../../interfaces/burners/mETH/IStaking.sol";
+import {ImETH_Burner} from "../../interfaces/burners/mETH/ImETH_Burner.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -21,7 +21,9 @@ contract mETH_Burner is UintRequests, ImETH_Burner {
      */
     address public immutable STAKING;
 
-    constructor(address collateral) {
+    constructor(
+        address collateral
+    ) {
         COLLATERAL = collateral;
 
         STAKING = IMETH(COLLATERAL).stakingContract();
@@ -45,7 +47,9 @@ contract mETH_Burner is UintRequests, ImETH_Burner {
     /**
      * @inheritdoc ImETH_Burner
      */
-    function triggerBurn(uint256 requestId) external {
+    function triggerBurn(
+        uint256 requestId
+    ) external {
         _removeRequestId(requestId);
 
         IStaking(STAKING).claimUnstakeRequest(requestId);

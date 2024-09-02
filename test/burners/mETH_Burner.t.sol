@@ -3,12 +3,12 @@ pragma solidity 0.8.25;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {mETH_Burner} from "src/contracts/burners/mETH_Burner.sol";
+import {mETH_Burner} from "../../src/contracts/burners/mETH_Burner.sol";
 
-import {IStaking} from "src/interfaces/burners/mETH/IStaking.sol";
-import {IMETH} from "src/interfaces/burners/mETH/IMETH.sol";
-import {ImETH_Burner} from "src/interfaces/burners/mETH/ImETH_Burner.sol";
-import {IUintRequests} from "src/interfaces/IUintRequests.sol";
+import {IStaking} from "../../src/interfaces/burners/mETH/IStaking.sol";
+import {IMETH} from "../../src/interfaces/burners/mETH/IMETH.sol";
+import {ImETH_Burner} from "../../src/interfaces/burners/mETH/ImETH_Burner.sol";
+import {IUintRequests} from "../../src/interfaces/IUintRequests.sol";
 
 import {IERC20} from "test/mocks/AaveV3Borrow.sol";
 
@@ -107,7 +107,9 @@ contract mETH_BurnerTest is Test {
         assertEq(requestsIds[1], nextRequestId);
     }
 
-    function test_TriggerBurn(uint256 depositAmount1) public {
+    function test_TriggerBurn(
+        uint256 depositAmount1
+    ) public {
         depositAmount1 = bound(depositAmount1, IStaking(STAKING).minimumUnstakeBound(), 10_000 ether);
 
         burner = new mETH_Burner(COLLATERAL);
@@ -135,7 +137,9 @@ contract mETH_BurnerTest is Test {
         assertEq(burner.requestIdsLength(), 0);
     }
 
-    function test_TriggerBurnRevertInvalidRequestId(uint256 depositAmount1) public {
+    function test_TriggerBurnRevertInvalidRequestId(
+        uint256 depositAmount1
+    ) public {
         depositAmount1 = bound(depositAmount1, IStaking(STAKING).minimumUnstakeBound(), 10_000 ether);
 
         burner = new mETH_Burner(COLLATERAL);
@@ -166,9 +170,13 @@ interface ITransparentUpgradeableProxy {
 
     function implementation() external view returns (address);
 
-    function changeAdmin(address) external;
+    function changeAdmin(
+        address
+    ) external;
 
-    function upgradeTo(address) external;
+    function upgradeTo(
+        address
+    ) external;
 
     function upgradeToAndCall(address, bytes memory) external payable;
 }

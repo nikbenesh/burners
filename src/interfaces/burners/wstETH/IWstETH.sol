@@ -7,7 +7,9 @@ interface IWstETH {
      * @param _wstETHAmount amount of wstETH
      * @return Amount of stETH for a given wstETH amount
      */
-    function getStETHByWstETH(uint256 _wstETHAmount) external returns (uint256);
+    function getStETHByWstETH(
+        uint256 _wstETHAmount
+    ) external returns (uint256);
 
     /**
      * @notice Exchanges wstETH to stETH
@@ -17,5 +19,7 @@ interface IWstETH {
      *  - msg.sender must have at least `_wstETHAmount` wstETH.
      * @return Amount of stETH user receives after unwrap
      */
-    function unwrap(uint256 _wstETHAmount) external returns (uint256);
+    function unwrap(
+        uint256 _wstETHAmount
+    ) external returns (uint256);
 }

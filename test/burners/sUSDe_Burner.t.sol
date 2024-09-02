@@ -3,14 +3,14 @@ pragma solidity 0.8.25;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {sUSDe_Burner} from "src/contracts/burners/sUSDe/sUSDe_Burner.sol";
-import {sUSDe_Miniburner} from "src/contracts/burners/sUSDe/sUSDe_Miniburner.sol";
+import {sUSDe_Burner} from "../../src/contracts/burners/sUSDe/sUSDe_Burner.sol";
+import {sUSDe_Miniburner} from "../../src/contracts/burners/sUSDe/sUSDe_Miniburner.sol";
 
-import {IsUSDe_Burner} from "src/interfaces/burners/sUSDe/IsUSDe_Burner.sol";
-import {ISUSDe} from "src/interfaces/burners/sUSDe/ISUSDe.sol";
-import {IUSDe} from "src/interfaces/burners/sUSDe/IUSDe.sol";
-import {IEthenaMinting} from "src/interfaces//burners/sUSDe/IEthenaMinting.sol";
-import {IAddressRequests} from "src/interfaces/IAddressRequests.sol";
+import {IsUSDe_Burner} from "../../src/interfaces/burners/sUSDe/IsUSDe_Burner.sol";
+import {ISUSDe} from "../../src/interfaces/burners/sUSDe/ISUSDe.sol";
+import {IUSDe} from "../../src/interfaces/burners/sUSDe/IUSDe.sol";
+import {IEthenaMinting} from "../../src/interfaces/burners/sUSDe/IEthenaMinting.sol";
+import {IAddressRequests} from "../../src/interfaces/IAddressRequests.sol";
 
 import {IERC20} from "test/mocks/AaveV3Borrow.sol";
 
@@ -159,7 +159,9 @@ contract sUSDe_BurnerTest is Test {
         burner.triggerClaim(address(0));
     }
 
-    function test_TriggerClaimRevertNoCooldown(uint256 depositAmount1) public {
+    function test_TriggerClaimRevertNoCooldown(
+        uint256 depositAmount1
+    ) public {
         vm.startPrank(DEFAULT_ADMIN);
         ISUSDe(COLLATERAL).setCooldownDuration(0);
         vm.stopPrank();
@@ -175,7 +177,9 @@ contract sUSDe_BurnerTest is Test {
         burner.triggerWithdrawal();
     }
 
-    function test_TriggerInstantClaim(uint256 depositAmount1) public {
+    function test_TriggerInstantClaim(
+        uint256 depositAmount1
+    ) public {
         vm.startPrank(DEFAULT_ADMIN);
         ISUSDe(COLLATERAL).setCooldownDuration(0);
         vm.stopPrank();
@@ -221,7 +225,7 @@ contract sUSDe_BurnerTest is Test {
         ISUSDe(COLLATERAL).setCooldownDuration(duration);
         vm.stopPrank();
 
-        depositAmount1 = bound(depositAmount1, 1e9, 2_000_000 ether);
+        depositAmount1 = bound(depositAmount1, 1e9, IERC20(USDT).balanceOf(IUSDe(USDE).minter()) * 1e12 / 2);
 
         burner = new sUSDe_Burner(COLLATERAL, address(new sUSDe_Miniburner(COLLATERAL)));
         vm.deal(address(burner), 0);
@@ -294,7 +298,7 @@ contract sUSDe_BurnerTest is Test {
         ISUSDe(COLLATERAL).setCooldownDuration(duration);
         vm.stopPrank();
 
-        depositAmount1 = bound(depositAmount1, 1e9, 2_000_000 ether);
+        depositAmount1 = bound(depositAmount1, 1e9, IERC20(USDT).balanceOf(IUSDe(USDE).minter()) * 1e12 / 2);
 
         burner = new sUSDe_Burner(COLLATERAL, address(new sUSDe_Miniburner(COLLATERAL)));
         vm.deal(address(burner), 0);
@@ -313,7 +317,7 @@ contract sUSDe_BurnerTest is Test {
         ISUSDe(COLLATERAL).setCooldownDuration(duration);
         vm.stopPrank();
 
-        depositAmount1 = bound(depositAmount1, 1e9, 2_000_000 ether);
+        depositAmount1 = bound(depositAmount1, 1e9, IERC20(USDT).balanceOf(IUSDe(USDE).minter()) * 1e12 / 2);
 
         burner = new sUSDe_Burner(COLLATERAL, address(new sUSDe_Miniburner(COLLATERAL)));
         vm.deal(address(burner), 0);
@@ -331,7 +335,7 @@ contract sUSDe_BurnerTest is Test {
         ISUSDe(COLLATERAL).setCooldownDuration(duration);
         vm.stopPrank();
 
-        depositAmount1 = bound(depositAmount1, 1e9, 2_000_000 ether);
+        depositAmount1 = bound(depositAmount1, 1e9, IERC20(USDT).balanceOf(IUSDe(USDE).minter()) * 1e12 / 2);
 
         burner = new sUSDe_Burner(COLLATERAL, address(new sUSDe_Miniburner(COLLATERAL)));
         vm.deal(address(burner), 0);
@@ -393,7 +397,7 @@ contract sUSDe_BurnerTest is Test {
         ISUSDe(COLLATERAL).setCooldownDuration(duration);
         vm.stopPrank();
 
-        depositAmount1 = bound(depositAmount1, 1e9, 2_000_000 ether);
+        depositAmount1 = bound(depositAmount1, 1e9, IERC20(USDT).balanceOf(IUSDe(USDE).minter()) * 1e12 / 2);
 
         burner = new sUSDe_Burner(COLLATERAL, address(new sUSDe_Miniburner(COLLATERAL)));
         vm.deal(address(burner), 0);
@@ -416,7 +420,7 @@ contract sUSDe_BurnerTest is Test {
         ISUSDe(COLLATERAL).setCooldownDuration(duration);
         vm.stopPrank();
 
-        depositAmount1 = bound(depositAmount1, 1e9, 2_000_000 ether);
+        depositAmount1 = bound(depositAmount1, 1e9, IERC20(USDT).balanceOf(IUSDe(USDE).minter()) * 1e12 / 2);
 
         burner = new sUSDe_Burner(COLLATERAL, address(new sUSDe_Miniburner(COLLATERAL)));
         vm.deal(address(burner), 0);
