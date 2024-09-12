@@ -3,10 +3,10 @@ pragma solidity 0.8.25;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {rETH_Burner} from "src/contracts/burners/rETH_Burner.sol";
+import {rETH_Burner} from "../../src/contracts/burners/rETH_Burner.sol";
 
-import {IrETH_Burner} from "src/interfaces/burners/rETH/IrETH_Burner.sol";
-import {IRocketTokenRETH} from "src/interfaces/burners/rETH/IRocketTokenRETH.sol";
+import {IrETH_Burner} from "../../src/interfaces/burners/rETH/IrETH_Burner.sol";
+import {IRocketTokenRETH} from "../../src/interfaces/burners/rETH/IRocketTokenRETH.sol";
 
 import {AaveV3Borrow, IERC20, IWETH} from "test/mocks/AaveV3Borrow.sol";
 

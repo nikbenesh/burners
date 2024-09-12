@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {SelfDestruct} from "src/contracts/SelfDestruct.sol";
-import {UintRequests} from "src/contracts/UintRequests.sol";
+import {SelfDestruct} from "../SelfDestruct.sol";
+import {UintRequests} from "../UintRequests.sol";
 
-import {IFraxEtherRedemptionQueue} from "src/interfaces/burners/sfrxETH/IFraxEtherRedemptionQueue.sol";
-import {IsfrxETH_Burner} from "src/interfaces/burners/sfrxETH/IsfrxETH_Burner.sol";
+import {IFraxEtherRedemptionQueue} from "../../interfaces/burners/sfrxETH/IFraxEtherRedemptionQueue.sol";
+import {IsfrxETH_Burner} from "../../interfaces/burners/sfrxETH/IsfrxETH_Burner.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
@@ -47,7 +47,9 @@ contract sfrxETH_Burner is UintRequests, IsfrxETH_Burner, IERC721Receiver {
     /**
      * @inheritdoc IsfrxETH_Burner
      */
-    function triggerBurn(uint256 requestId) external {
+    function triggerBurn(
+        uint256 requestId
+    ) external {
         _removeRequestId(requestId);
 
         IFraxEtherRedemptionQueue(FRAX_ETHER_REDEMPTION_QUEUE).burnRedemptionTicketNft(

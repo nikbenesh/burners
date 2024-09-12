@@ -11,5 +11,7 @@ interface IUSDe {
      *
      * See {ERC20-_burn}.
      */
-    function burn(uint256 value) external;
+    function burn(
+        uint256 value
+    ) external;
 }

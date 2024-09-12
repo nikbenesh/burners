@@ -63,7 +63,9 @@ interface ISwapRouter {
     /// @notice Swaps amountIn of one token for as much as possible of another token
     /// @param params The parameters necessary for the swap, encoded as ExactInputSingleParams in calldata
     /// @return amountOut The amount of the received token
-    function exactInputSingle(ExactInputSingleParams calldata params) external payable returns (uint256 amountOut);
+    function exactInputSingle(
+        ExactInputSingleParams calldata params
+    ) external payable returns (uint256 amountOut);
 
     struct ExactInputParams {
         bytes path;
@@ -76,14 +78,18 @@ interface ISwapRouter {
     /// @notice Swaps amountIn of one token for as much as possible of another along the specified path
     /// @param params The parameters necessary for the multi-hop swap, encoded as ExactInputParams in calldata
     /// @return amountOut The amount of the received token
-    function exactInput(ExactInputParams calldata params) external payable returns (uint256 amountOut);
+    function exactInput(
+        ExactInputParams calldata params
+    ) external payable returns (uint256 amountOut);
 }
 
 /// @title ERC20 interface
 /// @notice Interface for the EIP20 standard token.
 interface IERC20 {
     function totalSupply() external view returns (uint256);
-    function balanceOf(address account) external view returns (uint256);
+    function balanceOf(
+        address account
+    ) external view returns (uint256);
     function transfer(address recipient, uint256 amount) external returns (bool);
     function allowance(address owner, address spender) external view returns (uint256);
     function approve(address spender, uint256 amount) external returns (bool);
@@ -94,5 +100,7 @@ interface IERC20 {
 /// @notice Interface for the WETH token.
 interface IWETH is IERC20 {
     function deposit() external payable;
-    function withdraw(uint256 amount) external;
+    function withdraw(
+        uint256 amount
+    ) external;
 }

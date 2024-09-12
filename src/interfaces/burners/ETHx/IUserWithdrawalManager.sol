@@ -24,5 +24,7 @@ interface IUserWithdrawalManager {
      * @notice transfer the eth of finalized request to recipient and delete the request
      * @param _requestId request id to redeem
      */
-    function claim(uint256 _requestId) external;
+    function claim(
+        uint256 _requestId
+    ) external;
 }

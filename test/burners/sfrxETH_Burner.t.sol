@@ -3,11 +3,11 @@ pragma solidity 0.8.25;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {sfrxETH_Burner} from "src/contracts/burners/sfrxETH_Burner.sol";
+import {sfrxETH_Burner} from "../../src/contracts/burners/sfrxETH_Burner.sol";
 
-import {IFraxEtherRedemptionQueue} from "src/interfaces/burners/sfrxETH/IFraxEtherRedemptionQueue.sol";
-import {IsfrxETH_Burner} from "src/interfaces/burners/sfrxETH/IsfrxETH_Burner.sol";
-import {IUintRequests} from "src/interfaces/IUintRequests.sol";
+import {IFraxEtherRedemptionQueue} from "../../src/interfaces/burners/sfrxETH/IFraxEtherRedemptionQueue.sol";
+import {IsfrxETH_Burner} from "../../src/interfaces/burners/sfrxETH/IsfrxETH_Burner.sol";
+import {IUintRequests} from "../../src/interfaces/IUintRequests.sol";
 
 import {IERC20} from "test/mocks/AaveV3Borrow.sol";
 
@@ -107,7 +107,9 @@ contract sfrxETH_BurnerTest is Test {
         assertEq(requestsIds[1], nextRequestId);
     }
 
-    function test_TriggerBurn(uint256 depositAmount1) public {
+    function test_TriggerBurn(
+        uint256 depositAmount1
+    ) public {
         depositAmount1 = bound(depositAmount1, 1, 10_000 ether);
 
         burner = new sfrxETH_Burner(COLLATERAL, FRAX_ETHER_REDEMPTION_QUEUE);
@@ -130,7 +132,9 @@ contract sfrxETH_BurnerTest is Test {
         assertEq(burner.requestIdsLength(), 0);
     }
 
-    function test_TriggerBurnRevertInvalidRequestId(uint256 depositAmount1) public {
+    function test_TriggerBurnRevertInvalidRequestId(
+        uint256 depositAmount1
+    ) public {
         depositAmount1 = bound(depositAmount1, 1, 10_000 ether);
 
         burner = new sfrxETH_Burner(COLLATERAL, FRAX_ETHER_REDEMPTION_QUEUE);

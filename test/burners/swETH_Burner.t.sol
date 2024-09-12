@@ -3,12 +3,12 @@ pragma solidity 0.8.25;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {swETH_Burner} from "src/contracts/burners/swETH_Burner.sol";
+import {swETH_Burner} from "../../src/contracts/burners/swETH_Burner.sol";
 
-import {ISwEXIT} from "src/interfaces/burners/swETH/ISwEXIT.sol";
-import {ISwETH} from "src/interfaces/burners/swETH/ISwETH.sol";
-import {IswETH_Burner} from "src/interfaces/burners/swETH/IswETH_Burner.sol";
-import {IUintRequests} from "src/interfaces/IUintRequests.sol";
+import {ISwEXIT} from "../../src/interfaces/burners/swETH/ISwEXIT.sol";
+import {ISwETH} from "../../src/interfaces/burners/swETH/ISwETH.sol";
+import {IswETH_Burner} from "../../src/interfaces/burners/swETH/IswETH_Burner.sol";
+import {IUintRequests} from "../../src/interfaces/IUintRequests.sol";
 
 import {IERC20, IWETH} from "test/mocks/AaveV3Borrow.sol";
 
@@ -185,7 +185,9 @@ contract swETH_BurnerTest is Test {
         }
     }
 
-    function test_TriggerWithdrawalRevertInsufficientWithdrawal(uint256 depositAmount1) public {
+    function test_TriggerWithdrawalRevertInsufficientWithdrawal(
+        uint256 depositAmount1
+    ) public {
         depositAmount1 = bound(depositAmount1, 1, withdrawRequestMinimum - 1);
 
         burner = new swETH_Burner(COLLATERAL, SWEXIT);
@@ -200,7 +202,9 @@ contract swETH_BurnerTest is Test {
         burner.triggerWithdrawal(1);
     }
 
-    function test_TriggerBurn(uint256 depositAmount1) public {
+    function test_TriggerBurn(
+        uint256 depositAmount1
+    ) public {
         depositAmount1 = bound(depositAmount1, withdrawRequestMinimum, 10_000 ether);
 
         burner = new swETH_Burner(COLLATERAL, SWEXIT);
@@ -226,7 +230,9 @@ contract swETH_BurnerTest is Test {
         }
     }
 
-    function test_TriggerBurnRevertInvalidRequestId(uint256 depositAmount1) public {
+    function test_TriggerBurnRevertInvalidRequestId(
+        uint256 depositAmount1
+    ) public {
         depositAmount1 = bound(depositAmount1, withdrawRequestMinimum, 10_000 ether);
 
         burner = new swETH_Burner(COLLATERAL, SWEXIT);

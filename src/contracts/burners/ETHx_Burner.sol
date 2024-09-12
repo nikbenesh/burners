@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {SelfDestruct} from "src/contracts/SelfDestruct.sol";
-import {UintRequests} from "src/contracts/UintRequests.sol";
+import {SelfDestruct} from "../SelfDestruct.sol";
+import {UintRequests} from "../UintRequests.sol";
 
-import {IETHx_Burner} from "src/interfaces/burners/ETHx/IETHx_Burner.sol";
-import {IStaderConfig} from "src/interfaces/burners/ETHx/IStaderConfig.sol";
-import {IStaderStakePoolsManager} from "src/interfaces/burners/ETHx/IStaderStakePoolsManager.sol";
-import {IUserWithdrawalManager} from "src/interfaces/burners/ETHx/IUserWithdrawalManager.sol";
+import {IETHx_Burner} from "../../interfaces/burners/ETHx/IETHx_Burner.sol";
+import {IStaderConfig} from "../../interfaces/burners/ETHx/IStaderConfig.sol";
+import {IStaderStakePoolsManager} from "../../interfaces/burners/ETHx/IStaderStakePoolsManager.sol";
+import {IUserWithdrawalManager} from "../../interfaces/burners/ETHx/IUserWithdrawalManager.sol";
 
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -51,7 +51,9 @@ contract ETHx_Burner is UintRequests, Multicall, IETHx_Burner {
     /**
      * @inheritdoc IETHx_Burner
      */
-    function triggerWithdrawal(uint256 maxWithdrawalAmount) external returns (uint256 requestId) {
+    function triggerWithdrawal(
+        uint256 maxWithdrawalAmount
+    ) external returns (uint256 requestId) {
         uint256 maxETHWithdrawAmount = IStaderConfig(STADER_CONFIG).getMaxWithdrawAmount();
         if (
             IStaderStakePoolsManager(STAKE_POOLS_MANAGER).previewWithdraw(maxWithdrawalAmount) > maxETHWithdrawAmount
@@ -73,7 +75,9 @@ contract ETHx_Burner is UintRequests, Multicall, IETHx_Burner {
     /**
      * @inheritdoc IETHx_Burner
      */
-    function triggerBurn(uint256 requestId) external {
+    function triggerBurn(
+        uint256 requestId
+    ) external {
         _requestIds.remove(requestId);
 
         IUserWithdrawalManager(USER_WITHDRAW_MANAGER).claim(requestId);

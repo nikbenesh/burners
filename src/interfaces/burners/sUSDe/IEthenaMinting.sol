@@ -76,20 +76,28 @@ interface IEthenaMinting {
     }
 
     /// @notice hash an Order struct
-    function hashOrder(Order calldata order) external view returns (bytes32);
+    function hashOrder(
+        Order calldata order
+    ) external view returns (bytes32);
 
     /// @notice total USDe that can be minted/redeemed across all assets per single block.
     function totalPerBlockPerAsset(uint256 blockNumber, address asset) external view returns (BlockTotals memory);
 
-    function totalPerBlock(uint256 blockNumber) external view returns (BlockTotals memory);
+    function totalPerBlock(
+        uint256 blockNumber
+    ) external view returns (BlockTotals memory);
 
     /// @notice global single block totals
     function globalConfig() external view returns (GlobalConfig memory);
 
-    function tokenConfig(address asset) external view returns (TokenConfig memory);
+    function tokenConfig(
+        address asset
+    ) external view returns (TokenConfig memory);
 
     /// @notice Adds a benefactor address to the benefactor whitelist
-    function addWhitelistedBenefactor(address benefactor) external;
+    function addWhitelistedBenefactor(
+        address benefactor
+    ) external;
 
     /**
      * @notice Redeem stablecoins for assets

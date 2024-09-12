@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {IUintRequests} from "src/interfaces/IUintRequests.sol";
+import {IUintRequests} from "../../IUintRequests.sol";
 
 interface IwstETH_Burner is IUintRequests {
     error InsufficientWithdrawal();
@@ -57,13 +57,17 @@ interface IwstETH_Burner is IUintRequests {
      * @param maxRequests maximum number of withdrawal requests to create
      * @return requestIds request IDs that were created
      */
-    function triggerWithdrawal(uint256 maxRequests) external returns (uint256[] memory requestIds);
+    function triggerWithdrawal(
+        uint256 maxRequests
+    ) external returns (uint256[] memory requestIds);
 
     /**
      * @notice Trigger a claim and a burn of ETH.
      * @param requestId request ID of the withdrawal to process
      */
-    function triggerBurn(uint256 requestId) external;
+    function triggerBurn(
+        uint256 requestId
+    ) external;
 
     /**
      * @notice Trigger a batch claim and burn of ETH.
