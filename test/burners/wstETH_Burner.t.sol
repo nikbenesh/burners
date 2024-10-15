@@ -8,7 +8,7 @@ import {wstETH_Burner} from "../../src/contracts/burners/wstETH_Burner.sol";
 import {IWithdrawalQueue} from "../../src/interfaces/burners/wstETH/IWithdrawalQueue.sol";
 import {IWstETH} from "../../src/interfaces/burners/wstETH/IWstETH.sol";
 import {IwstETH_Burner} from "../../src/interfaces/burners/wstETH/IwstETH_Burner.sol";
-import {IUintRequests} from "../../src/interfaces/IUintRequests.sol";
+import {IUintRequests} from "../../src/interfaces/common/IUintRequests.sol";
 
 import {AaveV3Borrow, IERC20, IWETH} from "test/mocks/AaveV3Borrow.sol";
 

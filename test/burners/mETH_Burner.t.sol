@@ -8,7 +8,7 @@ import {mETH_Burner} from "../../src/contracts/burners/mETH_Burner.sol";
 import {IStaking} from "../../src/interfaces/burners/mETH/IStaking.sol";
 import {IMETH} from "../../src/interfaces/burners/mETH/IMETH.sol";
 import {ImETH_Burner} from "../../src/interfaces/burners/mETH/ImETH_Burner.sol";
-import {IUintRequests} from "../../src/interfaces/IUintRequests.sol";
+import {IUintRequests} from "../../src/interfaces/common/IUintRequests.sol";
 
 import {IERC20} from "test/mocks/AaveV3Borrow.sol";
 

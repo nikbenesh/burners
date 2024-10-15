@@ -10,7 +10,7 @@ import {IsUSDe_Burner} from "../../src/interfaces/burners/sUSDe/IsUSDe_Burner.so
 import {ISUSDe} from "../../src/interfaces/burners/sUSDe/ISUSDe.sol";
 import {IUSDe} from "../../src/interfaces/burners/sUSDe/IUSDe.sol";
 import {IEthenaMinting} from "../../src/interfaces/burners/sUSDe/IEthenaMinting.sol";
-import {IAddressRequests} from "../../src/interfaces/IAddressRequests.sol";
+import {IAddressRequests} from "../../src/interfaces/common/IAddressRequests.sol";
 
 import {IERC20} from "test/mocks/AaveV3Borrow.sol";
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {IUintRequests} from "../../IUintRequests.sol";
+import {IUintRequests} from "../../common/IUintRequests.sol";
 
 interface IwstETH_Burner is IUintRequests {
     error InsufficientWithdrawal();

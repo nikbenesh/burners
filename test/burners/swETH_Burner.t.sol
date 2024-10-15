@@ -8,7 +8,7 @@ import {swETH_Burner} from "../../src/contracts/burners/swETH_Burner.sol";
 import {ISwEXIT} from "../../src/interfaces/burners/swETH/ISwEXIT.sol";
 import {ISwETH} from "../../src/interfaces/burners/swETH/ISwETH.sol";
 import {IswETH_Burner} from "../../src/interfaces/burners/swETH/IswETH_Burner.sol";
-import {IUintRequests} from "../../src/interfaces/IUintRequests.sol";
+import {IUintRequests} from "../../src/interfaces/common/IUintRequests.sol";
 
 import {IERC20, IWETH} from "test/mocks/AaveV3Borrow.sol";
 

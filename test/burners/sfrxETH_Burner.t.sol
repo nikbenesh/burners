@@ -7,7 +7,7 @@ import {sfrxETH_Burner} from "../../src/contracts/burners/sfrxETH_Burner.sol";
 
 import {IFraxEtherRedemptionQueue} from "../../src/interfaces/burners/sfrxETH/IFraxEtherRedemptionQueue.sol";
 import {IsfrxETH_Burner} from "../../src/interfaces/burners/sfrxETH/IsfrxETH_Burner.sol";
-import {IUintRequests} from "../../src/interfaces/IUintRequests.sol";
+import {IUintRequests} from "../../src/interfaces/common/IUintRequests.sol";
 
 import {IERC20} from "test/mocks/AaveV3Borrow.sol";
 
