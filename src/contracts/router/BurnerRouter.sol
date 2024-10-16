@@ -110,6 +110,7 @@ contract BurnerRouter is OwnableUpgradeable, IBurnerRouter {
     function setGlobalReceiver(
         address receiver
     ) external onlyOwner {
+        _tryAcceptDelay();
         _setReceiver(receiver, globalReceiver, pendingGlobalReceiver);
 
         emit SetGlobalReceiver(receiver);
@@ -128,6 +129,7 @@ contract BurnerRouter is OwnableUpgradeable, IBurnerRouter {
      * @inheritdoc IBurnerRouter
      */
     function setNetworkReceiver(address network, address receiver) external onlyOwner {
+        _tryAcceptDelay();
         _setReceiver(receiver, networkReceiver[network], pendingNetworkReceiver[network]);
 
         emit SetNetworkReceiver(network, receiver);
@@ -148,6 +150,7 @@ contract BurnerRouter is OwnableUpgradeable, IBurnerRouter {
      * @inheritdoc IBurnerRouter
      */
     function setOperatorNetworkReceiver(address network, address operator, address receiver) external onlyOwner {
+        _tryAcceptDelay();
         _setReceiver(
             receiver, operatorNetworkReceiver[network][operator], pendingOperatorNetworkReceiver[network][operator]
         );
@@ -170,11 +173,7 @@ contract BurnerRouter is OwnableUpgradeable, IBurnerRouter {
     function setDelay(
         uint48 newDelay
     ) external {
-        if (pendingDelay.timestamp != 0 && pendingDelay.timestamp <= Time.timestamp()) {
-            delay.value = pendingDelay.value;
-            pendingDelay.value = 0;
-            pendingDelay.timestamp = 0;
-        }
+        _tryAcceptDelay();
 
         if (pendingDelay.timestamp != 0) {
             pendingDelay.value = 0;
@@ -298,5 +297,13 @@ contract BurnerRouter is OwnableUpgradeable, IBurnerRouter {
         currentReceiver.value = pendingReceiver.value;
         pendingReceiver.value = address(0);
         pendingReceiver.timestamp = 0;
+    }
+
+    function _tryAcceptDelay() internal {
+        if (pendingDelay.timestamp != 0 && pendingDelay.timestamp <= Time.timestamp()) {
+            delay.value = pendingDelay.value;
+            pendingDelay.value = 0;
+            pendingDelay.timestamp = 0;
+        }
     }
 }
