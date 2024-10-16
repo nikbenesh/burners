@@ -10,10 +10,8 @@ interface IRouterBurner is IBurner {
     error InsufficientBalance();
     error InvalidReceiverSetEpochsDelay();
     error InvalidReceiver();
-    error InvalidVault();
+    error InvalidCollateral();
     error NotReady();
-    error NotVault();
-    error VaultAlreadyInitialized();
 
     struct Address {
         address value;
@@ -21,6 +19,15 @@ interface IRouterBurner is IBurner {
 
     struct PendingAddress {
         address value;
+        uint48 timestamp;
+    }
+
+    struct Uint48 {
+        uint48 value;
+    }
+
+    struct PendingUint48 {
+        uint48 value;
         uint48 timestamp;
     }
 
@@ -37,10 +44,11 @@ interface IRouterBurner is IBurner {
 
     struct InitParams {
         address owner;
+        address collateral;
+        uint48 delay;
         address globalReceiver;
         NetworkReceiver[] networkReceivers;
         OperatorNetworkReceiver[] operatorNetworkReceivers;
-        uint256 receiverSetEpochsDelay;
     }
 
     event TriggerTransfer(address indexed receiver, uint256 amount);
@@ -57,17 +65,13 @@ interface IRouterBurner is IBurner {
 
     event AcceptOperatorNetworkReceiver(address indexed network, address indexed operator);
 
-    event SetVault(address vault);
-
-    function VAULT_FACTORY() external view returns (address);
-
-    function vault() external view returns (address);
-
     function collateral() external view returns (address);
 
-    function receiverSetEpochsDelay() external view returns (uint256);
-
     function lastBalance() external view returns (uint256);
+
+    function delay() external view returns (uint48);
+
+    function pendingDelay() external view returns (uint48, uint48);
 
     function globalReceiver() external view returns (address);
 
@@ -92,8 +96,6 @@ interface IRouterBurner is IBurner {
         address receiver
     ) external view returns (uint256);
 
-    function isInitialized() external view returns (bool);
-
     function triggerTransfer(
         address receiver
     ) external returns (uint256 amount);
@@ -114,7 +116,9 @@ interface IRouterBurner is IBurner {
 
     function acceptOperatorNetworkReceiver(address network, address operator) external;
 
-    function setVault(
-        address vault
+    function setDelay(
+        uint48 newDelay
     ) external;
+
+    function acceptDelay() external;
 }

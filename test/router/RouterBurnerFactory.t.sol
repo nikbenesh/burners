@@ -146,10 +146,8 @@ contract RouterBurnerFactoryTest is Test {
             new VaultConfigurator(address(vaultFactory), address(delegatorFactory), address(slasherFactory));
     }
 
-    function test_Create(uint256 receiverSetEpochsDelay, address globalReceiver) public {
-        receiverSetEpochsDelay = bound(receiverSetEpochsDelay, 3, type(uint256).max);
-
-        address routerBurnerImplementation = address(new RouterBurner(address(vaultFactory)));
+    function test_Create(uint48 delay, address globalReceiver) public {
+        address routerBurnerImplementation = address(new RouterBurner());
         routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
 
         uint160 N1 = 10;
@@ -173,7 +171,8 @@ contract RouterBurnerFactoryTest is Test {
 
         IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
             owner: owner,
-            receiverSetEpochsDelay: receiverSetEpochsDelay,
+            collateral: address(collateral),
+            delay: delay,
             globalReceiver: globalReceiver,
             networkReceivers: networkReceivers,
             operatorNetworkReceivers: operatorNetworkReceivers
@@ -184,11 +183,9 @@ contract RouterBurnerFactoryTest is Test {
 
         assertTrue(routerBurnerFactory.isEntity(routerBurnerAddress));
 
-        assertEq(routerBurner.VAULT_FACTORY(), address(vaultFactory));
         assertEq(routerBurner.owner(), owner);
-        assertEq(routerBurner.vault(), address(0));
-        assertEq(routerBurner.collateral(), address(0));
-        assertEq(routerBurner.receiverSetEpochsDelay(), receiverSetEpochsDelay);
+        assertEq(routerBurner.collateral(), address(collateral));
+        assertEq(routerBurner.delay(), delay);
         assertEq(routerBurner.lastBalance(), 0);
         assertEq(routerBurner.globalReceiver(), globalReceiver);
         (address pendingAddress, uint48 pendingTimestamp) = routerBurner.pendingGlobalReceiver();
@@ -210,50 +207,12 @@ contract RouterBurnerFactoryTest is Test {
         assertEq(pendingAddress, address(0));
         assertEq(pendingTimestamp, 0);
         assertEq(routerBurner.balanceOf(address(0)), 0);
-        assertEq(routerBurner.isInitialized(), false);
 
         (vault, delegator, slasher) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
-
-        vm.startPrank(owner);
-        routerBurner.setVault(address(vault));
-        vm.stopPrank();
-
-        assertEq(routerBurner.VAULT_FACTORY(), address(vaultFactory));
-        assertEq(routerBurner.owner(), owner);
-        assertEq(routerBurner.vault(), address(vault));
-        assertEq(routerBurner.collateral(), vault.collateral());
-        assertEq(routerBurner.receiverSetEpochsDelay(), receiverSetEpochsDelay);
-        assertEq(routerBurner.lastBalance(), 0);
-        assertEq(routerBurner.globalReceiver(), globalReceiver);
-        (pendingAddress, pendingTimestamp) = routerBurner.pendingGlobalReceiver();
-        assertEq(pendingAddress, address(0));
-        assertEq(pendingTimestamp, 0);
-        for (uint160 i; i < N1 + 1; ++i) {
-            assertEq(routerBurner.networkReceiver(address(i * 2 + 3)), i < N1 ? address(i * 2 + 1) : address(0));
-        }
-        (pendingAddress, pendingTimestamp) = routerBurner.pendingNetworkReceiver(address(0));
-        assertEq(pendingAddress, address(0));
-        assertEq(pendingTimestamp, 0);
-        for (uint160 i; i < N2 + 1; ++i) {
-            assertEq(
-                routerBurner.operatorNetworkReceiver(address(i * 2 + 3), address(i * 2 + 1)),
-                i < N2 ? address(i * 2 + 2) : address(0)
-            );
-        }
-        (pendingAddress, pendingTimestamp) = routerBurner.pendingOperatorNetworkReceiver(address(0), address(0));
-        assertEq(pendingAddress, address(0));
-        assertEq(pendingTimestamp, 0);
-        assertEq(routerBurner.balanceOf(address(0)), 0);
-        assertEq(routerBurner.isInitialized(), true);
     }
 
-    function test_CreateRevertInvalidReceiverSetEpochsDelay(
-        uint256 receiverSetEpochsDelay,
-        address globalReceiver
-    ) public {
-        receiverSetEpochsDelay = bound(receiverSetEpochsDelay, 0, 2);
-
-        address routerBurnerImplementation = address(new RouterBurner(address(vaultFactory)));
+    function test_CreateRevertInvalidCollateral(uint48 delay, address globalReceiver) public {
+        address routerBurnerImplementation = address(new RouterBurner());
         routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
 
         uint160 N1 = 10;
@@ -277,20 +236,19 @@ contract RouterBurnerFactoryTest is Test {
 
         IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
             owner: owner,
-            receiverSetEpochsDelay: receiverSetEpochsDelay,
+            collateral: address(0),
+            delay: delay,
             globalReceiver: globalReceiver,
             networkReceivers: networkReceivers,
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        vm.expectRevert(IRouterBurner.InvalidReceiverSetEpochsDelay.selector);
+        vm.expectRevert(IRouterBurner.InvalidCollateral.selector);
         address routerBurnerAddress = routerBurnerFactory.create(initParams);
     }
 
-    function test_CreateRevertInvalidReceiver1(uint256 receiverSetEpochsDelay, address globalReceiver) public {
-        receiverSetEpochsDelay = bound(receiverSetEpochsDelay, 3, type(uint256).max);
-
-        address routerBurnerImplementation = address(new RouterBurner(address(vaultFactory)));
+    function test_CreateRevertInvalidReceiver1(uint48 delay, address globalReceiver) public {
+        address routerBurnerImplementation = address(new RouterBurner());
         routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
 
         uint160 N1 = 10;
@@ -313,7 +271,8 @@ contract RouterBurnerFactoryTest is Test {
 
         IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
             owner: owner,
-            receiverSetEpochsDelay: receiverSetEpochsDelay,
+            collateral: address(collateral),
+            delay: delay,
             globalReceiver: globalReceiver,
             networkReceivers: networkReceivers,
             operatorNetworkReceivers: operatorNetworkReceivers
@@ -323,10 +282,8 @@ contract RouterBurnerFactoryTest is Test {
         address routerBurnerAddress = routerBurnerFactory.create(initParams);
     }
 
-    function test_CreateRevertInvalidReceiver2(uint256 receiverSetEpochsDelay, address globalReceiver) public {
-        receiverSetEpochsDelay = bound(receiverSetEpochsDelay, 3, type(uint256).max);
-
-        address routerBurnerImplementation = address(new RouterBurner(address(vaultFactory)));
+    function test_CreateRevertInvalidReceiver2(uint48 delay, address globalReceiver) public {
+        address routerBurnerImplementation = address(new RouterBurner());
         routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
 
         uint160 N1 = 10;
@@ -350,7 +307,8 @@ contract RouterBurnerFactoryTest is Test {
 
         IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
             owner: owner,
-            receiverSetEpochsDelay: receiverSetEpochsDelay,
+            collateral: address(collateral),
+            delay: delay,
             globalReceiver: globalReceiver,
             networkReceivers: networkReceivers,
             operatorNetworkReceivers: operatorNetworkReceivers
@@ -360,10 +318,8 @@ contract RouterBurnerFactoryTest is Test {
         address routerBurnerAddress = routerBurnerFactory.create(initParams);
     }
 
-    function test_CreateRevertDuplicateNetworkReceiver(uint256 receiverSetEpochsDelay, address globalReceiver) public {
-        receiverSetEpochsDelay = bound(receiverSetEpochsDelay, 3, type(uint256).max);
-
-        address routerBurnerImplementation = address(new RouterBurner(address(vaultFactory)));
+    function test_CreateRevertDuplicateNetworkReceiver(uint48 delay, address globalReceiver) public {
+        address routerBurnerImplementation = address(new RouterBurner());
         routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
 
         uint160 N1 = 10;
@@ -386,7 +342,8 @@ contract RouterBurnerFactoryTest is Test {
 
         IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
             owner: owner,
-            receiverSetEpochsDelay: receiverSetEpochsDelay,
+            collateral: address(collateral),
+            delay: delay,
             globalReceiver: globalReceiver,
             networkReceivers: networkReceivers,
             operatorNetworkReceivers: operatorNetworkReceivers
@@ -396,13 +353,8 @@ contract RouterBurnerFactoryTest is Test {
         address routerBurnerAddress = routerBurnerFactory.create(initParams);
     }
 
-    function test_CreateRevertDuplicateOperatorNetworkReceiver(
-        uint256 receiverSetEpochsDelay,
-        address globalReceiver
-    ) public {
-        receiverSetEpochsDelay = bound(receiverSetEpochsDelay, 3, type(uint256).max);
-
-        address routerBurnerImplementation = address(new RouterBurner(address(vaultFactory)));
+    function test_CreateRevertDuplicateOperatorNetworkReceiver(uint48 delay, address globalReceiver) public {
+        address routerBurnerImplementation = address(new RouterBurner());
         routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
 
         uint160 N1 = 10;
@@ -426,7 +378,8 @@ contract RouterBurnerFactoryTest is Test {
 
         IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
             owner: owner,
-            receiverSetEpochsDelay: receiverSetEpochsDelay,
+            collateral: address(collateral),
+            delay: delay,
             globalReceiver: globalReceiver,
             networkReceivers: networkReceivers,
             operatorNetworkReceivers: operatorNetworkReceivers

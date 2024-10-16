@@ -4,8 +4,6 @@ pragma solidity 0.8.25;
 import {IRouterBurner} from "../../interfaces/router/IRouterBurner.sol";
 
 import {IBurner} from "@symbioticfi/core/src/interfaces/slasher/IBurner.sol";
-import {IRegistry} from "@symbioticfi/core/src/interfaces/common/IRegistry.sol";
-import {IVault} from "@symbioticfi/core/src/interfaces/vault/IVault.sol";
 import {Subnetwork} from "@symbioticfi/core/src/contracts/libraries/Subnetwork.sol";
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -21,27 +19,22 @@ contract RouterBurner is OwnableUpgradeable, IRouterBurner {
     /**
      * @inheritdoc IRouterBurner
      */
-    address public immutable VAULT_FACTORY;
-
-    /**
-     * @inheritdoc IRouterBurner
-     */
-    address public vault;
-
-    /**
-     * @inheritdoc IRouterBurner
-     */
     address public collateral;
 
     /**
      * @inheritdoc IRouterBurner
      */
-    uint256 public receiverSetEpochsDelay;
+    uint256 public lastBalance;
 
     /**
      * @inheritdoc IRouterBurner
      */
-    uint256 public lastBalance;
+    Uint48 public delay;
+
+    /**
+     * @inheritdoc IRouterBurner
+     */
+    PendingUint48 public pendingDelay;
 
     /**
      * @inheritdoc IRouterBurner
@@ -78,19 +71,6 @@ contract RouterBurner is OwnableUpgradeable, IRouterBurner {
      * @inheritdoc IRouterBurner
      */
     mapping(address receiver => uint256 amount) public balanceOf;
-
-    constructor(
-        address vaultFactory
-    ) {
-        VAULT_FACTORY = vaultFactory;
-    }
-
-    /**
-     * @inheritdoc IRouterBurner
-     */
-    function isInitialized() external view returns (bool) {
-        return vault != address(0);
-    }
 
     /**
      * @inheritdoc IBurner
@@ -189,38 +169,54 @@ contract RouterBurner is OwnableUpgradeable, IRouterBurner {
     /**
      * @inheritdoc IRouterBurner
      */
-    function setVault(
-        address vault_
+    function setDelay(
+        uint48 newDelay
     ) external {
-        if (vault != address(0)) {
-            revert VaultAlreadyInitialized();
+        if (pendingDelay.timestamp != 0 && pendingDelay.timestamp <= Time.timestamp()) {
+            delay.value = pendingDelay.value;
+            pendingDelay.value = 0;
+            pendingDelay.timestamp = 0;
         }
 
-        if (!IRegistry(VAULT_FACTORY).isEntity(vault_)) {
-            revert NotVault();
+        if (pendingDelay.timestamp != 0) {
+            pendingDelay.value = 0;
+            pendingDelay.timestamp = 0;
+        } else if (newDelay == delay.value) {
+            revert AlreadySet();
         }
 
-        if (IVault(vault_).burner() != address(this)) {
-            revert InvalidVault();
+        if (newDelay != delay.value) {
+            pendingDelay.value = newDelay;
+            pendingDelay.timestamp = Time.timestamp() + delay.value;
+        }
+    }
+
+    /**
+     * @inheritdoc IRouterBurner
+     */
+    function acceptDelay() external {
+        if (pendingDelay.timestamp == 0 || pendingDelay.timestamp > Time.timestamp()) {
+            revert NotReady();
         }
 
-        vault = vault_;
-
-        collateral = IVault(vault).collateral();
-
-        emit SetVault(vault_);
+        delay.value = pendingDelay.value;
+        pendingDelay.value = 0;
+        pendingDelay.timestamp = 0;
     }
 
     function initialize(
         InitParams calldata params
     ) external initializer {
-        if (params.receiverSetEpochsDelay < 3) {
-            revert InvalidReceiverSetEpochsDelay();
+        if (params.collateral == address(0)) {
+            revert InvalidCollateral();
         }
 
         if (params.owner != address(0)) {
             __Ownable_init(params.owner);
         }
+
+        collateral = params.collateral;
+        delay.value = params.delay;
 
         globalReceiver.value = params.globalReceiver;
 
@@ -256,8 +252,6 @@ contract RouterBurner is OwnableUpgradeable, IRouterBurner {
 
             operatorNetworkReceiver_.value = receiver;
         }
-
-        receiverSetEpochsDelay = params.receiverSetEpochsDelay;
     }
 
     function _getReceiver(address network, address operator) internal view returns (address receiver) {
@@ -293,11 +287,8 @@ contract RouterBurner is OwnableUpgradeable, IRouterBurner {
         }
 
         if (newReceiver != currentReceiver.value) {
-            address vault_ = vault;
             pendingReceiver.value = newReceiver;
-            pendingReceiver.timestamp = (
-                IVault(vault_).currentEpochStart() + receiverSetEpochsDelay * IVault(vault_).epochDuration()
-            ).toUint48();
+            pendingReceiver.timestamp = Time.timestamp() + delay.value;
         }
     }
 
