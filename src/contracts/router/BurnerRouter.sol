@@ -7,12 +7,10 @@ import {IBurner} from "@symbioticfi/core/src/interfaces/slasher/IBurner.sol";
 import {Subnetwork} from "@symbioticfi/core/src/contracts/libraries/Subnetwork.sol";
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Time} from "@openzeppelin/contracts/utils/types/Time.sol";
 
 contract BurnerRouter is OwnableUpgradeable, IBurnerRouter {
-    using SafeCast for uint256;
     using Subnetwork for bytes32;
     using SafeERC20 for IERC20;
 
