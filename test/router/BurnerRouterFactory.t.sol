@@ -27,11 +27,11 @@ import {IBaseDelegator} from "@symbioticfi/core/src/interfaces/delegator/IBaseDe
 import {IBaseSlasher} from "@symbioticfi/core/src/interfaces/slasher/IBaseSlasher.sol";
 import {ISlasher} from "@symbioticfi/core/src/interfaces/slasher/ISlasher.sol";
 
-import {RouterBurnerFactory} from "../../src/contracts/router/RouterBurnerFactory.sol";
-import {RouterBurner} from "../../src/contracts/router/RouterBurner.sol";
-import {IRouterBurner} from "../../src/interfaces/router/IRouterBurner.sol";
+import {BurnerRouterFactory} from "../../src/contracts/router/BurnerRouterFactory.sol";
+import {BurnerRouter} from "../../src/contracts/router/BurnerRouter.sol";
+import {IBurnerRouter} from "../../src/interfaces/router/IBurnerRouter.sol";
 
-contract RouterBurnerFactoryTest is Test {
+contract BurnerRouterFactoryTest is Test {
     address owner;
     address alice;
     uint256 alicePrivateKey;
@@ -57,8 +57,8 @@ contract RouterBurnerFactoryTest is Test {
     FullRestakeDelegator delegator;
     Slasher slasher;
 
-    RouterBurnerFactory routerBurnerFactory;
-    RouterBurner routerBurner;
+    BurnerRouterFactory burnerRouterFactory;
+    BurnerRouter burnerRouter;
 
     function setUp() public {
         owner = address(this);
@@ -147,29 +147,29 @@ contract RouterBurnerFactoryTest is Test {
     }
 
     function test_Create(uint48 delay, address globalReceiver) public {
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
         uint160 N1 = 10;
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](N1);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](N1);
         uint160 N2 = 20;
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](N2);
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](N2);
 
         for (uint160 i; i < N1; ++i) {
             networkReceivers[i] =
-                IRouterBurner.NetworkReceiver({network: address(i * 2 + 3), receiver: address(i * 2 + 1)});
+                IBurnerRouter.NetworkReceiver({network: address(i * 2 + 3), receiver: address(i * 2 + 1)});
         }
 
         for (uint160 i; i < N2; ++i) {
-            operatorNetworkReceivers[i] = IRouterBurner.OperatorNetworkReceiver({
+            operatorNetworkReceivers[i] = IBurnerRouter.OperatorNetworkReceiver({
                 network: address(i * 2 + 3),
                 operator: address(i * 2 + 1),
                 receiver: address(i * 2 + 2)
             });
         }
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: owner,
             collateral: address(collateral),
             delay: delay,
@@ -178,63 +178,63 @@ contract RouterBurnerFactoryTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
-        routerBurner = RouterBurner(routerBurnerAddress);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
+        burnerRouter = BurnerRouter(burnerRouterAddress);
 
-        assertTrue(routerBurnerFactory.isEntity(routerBurnerAddress));
+        assertTrue(burnerRouterFactory.isEntity(burnerRouterAddress));
 
-        assertEq(routerBurner.owner(), owner);
-        assertEq(routerBurner.collateral(), address(collateral));
-        assertEq(routerBurner.delay(), delay);
-        assertEq(routerBurner.lastBalance(), 0);
-        assertEq(routerBurner.globalReceiver(), globalReceiver);
-        (address pendingAddress, uint48 pendingTimestamp) = routerBurner.pendingGlobalReceiver();
+        assertEq(burnerRouter.owner(), owner);
+        assertEq(burnerRouter.collateral(), address(collateral));
+        assertEq(burnerRouter.delay(), delay);
+        assertEq(burnerRouter.lastBalance(), 0);
+        assertEq(burnerRouter.globalReceiver(), globalReceiver);
+        (address pendingAddress, uint48 pendingTimestamp) = burnerRouter.pendingGlobalReceiver();
         assertEq(pendingAddress, address(0));
         assertEq(pendingTimestamp, 0);
         for (uint160 i; i < N1 + 1; ++i) {
-            assertEq(routerBurner.networkReceiver(address(i * 2 + 3)), i < N1 ? address(i * 2 + 1) : address(0));
+            assertEq(burnerRouter.networkReceiver(address(i * 2 + 3)), i < N1 ? address(i * 2 + 1) : address(0));
         }
-        (pendingAddress, pendingTimestamp) = routerBurner.pendingNetworkReceiver(address(0));
+        (pendingAddress, pendingTimestamp) = burnerRouter.pendingNetworkReceiver(address(0));
         assertEq(pendingAddress, address(0));
         assertEq(pendingTimestamp, 0);
         for (uint160 i; i < N2 + 1; ++i) {
             assertEq(
-                routerBurner.operatorNetworkReceiver(address(i * 2 + 3), address(i * 2 + 1)),
+                burnerRouter.operatorNetworkReceiver(address(i * 2 + 3), address(i * 2 + 1)),
                 i < N2 ? address(i * 2 + 2) : address(0)
             );
         }
-        (pendingAddress, pendingTimestamp) = routerBurner.pendingOperatorNetworkReceiver(address(0), address(0));
+        (pendingAddress, pendingTimestamp) = burnerRouter.pendingOperatorNetworkReceiver(address(0), address(0));
         assertEq(pendingAddress, address(0));
         assertEq(pendingTimestamp, 0);
-        assertEq(routerBurner.balanceOf(address(0)), 0);
+        assertEq(burnerRouter.balanceOf(address(0)), 0);
 
-        (vault, delegator, slasher) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
+        (vault, delegator, slasher) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
     }
 
     function test_CreateRevertInvalidCollateral(uint48 delay, address globalReceiver) public {
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
         uint160 N1 = 10;
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](N1);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](N1);
         uint160 N2 = 20;
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](N2);
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](N2);
 
         for (uint160 i; i < N1; ++i) {
             networkReceivers[i] =
-                IRouterBurner.NetworkReceiver({network: address(i * 2 + 3), receiver: address(i * 2 + 1)});
+                IBurnerRouter.NetworkReceiver({network: address(i * 2 + 3), receiver: address(i * 2 + 1)});
         }
 
         for (uint160 i; i < N2; ++i) {
-            operatorNetworkReceivers[i] = IRouterBurner.OperatorNetworkReceiver({
+            operatorNetworkReceivers[i] = IBurnerRouter.OperatorNetworkReceiver({
                 network: address(i * 2 + 3),
                 operator: address(i * 2 + 1),
                 receiver: address(i * 2 + 2)
             });
         }
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: owner,
             collateral: address(0),
             delay: delay,
@@ -243,33 +243,33 @@ contract RouterBurnerFactoryTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        vm.expectRevert(IRouterBurner.InvalidCollateral.selector);
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
+        vm.expectRevert(IBurnerRouter.InvalidCollateral.selector);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
     }
 
     function test_CreateRevertInvalidReceiver1(uint48 delay, address globalReceiver) public {
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
         uint160 N1 = 10;
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](N1);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](N1);
         uint160 N2 = 20;
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](N2);
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](N2);
 
         for (uint160 i; i < N1; ++i) {
-            networkReceivers[i] = IRouterBurner.NetworkReceiver({network: address(i * 2 + 3), receiver: address(0)});
+            networkReceivers[i] = IBurnerRouter.NetworkReceiver({network: address(i * 2 + 3), receiver: address(0)});
         }
 
         for (uint160 i; i < N2; ++i) {
-            operatorNetworkReceivers[i] = IRouterBurner.OperatorNetworkReceiver({
+            operatorNetworkReceivers[i] = IBurnerRouter.OperatorNetworkReceiver({
                 network: address(i * 2 + 3),
                 operator: address(i * 2 + 1),
                 receiver: address(i * 2 + 2)
             });
         }
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: owner,
             collateral: address(collateral),
             delay: delay,
@@ -278,34 +278,34 @@ contract RouterBurnerFactoryTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        vm.expectRevert(IRouterBurner.InvalidReceiver.selector);
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
+        vm.expectRevert(IBurnerRouter.InvalidReceiver.selector);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
     }
 
     function test_CreateRevertInvalidReceiver2(uint48 delay, address globalReceiver) public {
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
         uint160 N1 = 10;
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](N1);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](N1);
         uint160 N2 = 20;
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](N2);
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](N2);
 
         for (uint160 i; i < N1; ++i) {
             networkReceivers[i] =
-                IRouterBurner.NetworkReceiver({network: address(i * 2 + 3), receiver: address(i * 2 + 1)});
+                IBurnerRouter.NetworkReceiver({network: address(i * 2 + 3), receiver: address(i * 2 + 1)});
         }
 
         for (uint160 i; i < N2; ++i) {
-            operatorNetworkReceivers[i] = IRouterBurner.OperatorNetworkReceiver({
+            operatorNetworkReceivers[i] = IBurnerRouter.OperatorNetworkReceiver({
                 network: address(i * 2 + 3),
                 operator: address(i * 2 + 1),
                 receiver: address(0)
             });
         }
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: owner,
             collateral: address(collateral),
             delay: delay,
@@ -314,33 +314,33 @@ contract RouterBurnerFactoryTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        vm.expectRevert(IRouterBurner.InvalidReceiver.selector);
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
+        vm.expectRevert(IBurnerRouter.InvalidReceiver.selector);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
     }
 
     function test_CreateRevertDuplicateNetworkReceiver(uint48 delay, address globalReceiver) public {
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
         uint160 N1 = 10;
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](N1);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](N1);
         uint160 N2 = 20;
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](N2);
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](N2);
 
         for (uint160 i; i < N1; ++i) {
-            networkReceivers[i] = IRouterBurner.NetworkReceiver({network: address(1), receiver: address(i * 2 + 1)});
+            networkReceivers[i] = IBurnerRouter.NetworkReceiver({network: address(1), receiver: address(i * 2 + 1)});
         }
 
         for (uint160 i; i < N2; ++i) {
-            operatorNetworkReceivers[i] = IRouterBurner.OperatorNetworkReceiver({
+            operatorNetworkReceivers[i] = IBurnerRouter.OperatorNetworkReceiver({
                 network: address(i * 2 + 3),
                 operator: address(i * 2 + 1),
                 receiver: address(i * 2 + 2)
             });
         }
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: owner,
             collateral: address(collateral),
             delay: delay,
@@ -349,34 +349,34 @@ contract RouterBurnerFactoryTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        vm.expectRevert(IRouterBurner.DuplicateNetworkReceiver.selector);
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
+        vm.expectRevert(IBurnerRouter.DuplicateNetworkReceiver.selector);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
     }
 
     function test_CreateRevertDuplicateOperatorNetworkReceiver(uint48 delay, address globalReceiver) public {
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
         uint160 N1 = 10;
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](N1);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](N1);
         uint160 N2 = 20;
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](N2);
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](N2);
 
         for (uint160 i; i < N1; ++i) {
             networkReceivers[i] =
-                IRouterBurner.NetworkReceiver({network: address(i * 2 + 3), receiver: address(i * 2 + 1)});
+                IBurnerRouter.NetworkReceiver({network: address(i * 2 + 3), receiver: address(i * 2 + 1)});
         }
 
         for (uint160 i; i < N2; ++i) {
-            operatorNetworkReceivers[i] = IRouterBurner.OperatorNetworkReceiver({
+            operatorNetworkReceivers[i] = IBurnerRouter.OperatorNetworkReceiver({
                 network: address(1),
                 operator: address(1),
                 receiver: address(i * 2 + 2)
             });
         }
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: owner,
             collateral: address(collateral),
             delay: delay,
@@ -385,8 +385,8 @@ contract RouterBurnerFactoryTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        vm.expectRevert(IRouterBurner.DuplicateOperatorNetworkReceiver.selector);
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
+        vm.expectRevert(IBurnerRouter.DuplicateOperatorNetworkReceiver.selector);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
     }
 
     function _getVaultWithDelegatorWithSlasher(

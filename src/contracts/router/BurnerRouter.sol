@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {IRouterBurner} from "../../interfaces/router/IRouterBurner.sol";
+import {IBurnerRouter} from "../../interfaces/router/IBurnerRouter.sol";
 
 import {IBurner} from "@symbioticfi/core/src/interfaces/slasher/IBurner.sol";
 import {Subnetwork} from "@symbioticfi/core/src/contracts/libraries/Subnetwork.sol";
@@ -11,64 +11,64 @@ import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Time} from "@openzeppelin/contracts/utils/types/Time.sol";
 
-contract RouterBurner is OwnableUpgradeable, IRouterBurner {
+contract BurnerRouter is OwnableUpgradeable, IBurnerRouter {
     using SafeCast for uint256;
     using Subnetwork for bytes32;
     using SafeERC20 for IERC20;
 
     /**
-     * @inheritdoc IRouterBurner
+     * @inheritdoc IBurnerRouter
      */
     address public collateral;
 
     /**
-     * @inheritdoc IRouterBurner
+     * @inheritdoc IBurnerRouter
      */
     uint256 public lastBalance;
 
     /**
-     * @inheritdoc IRouterBurner
+     * @inheritdoc IBurnerRouter
      */
     Uint48 public delay;
 
     /**
-     * @inheritdoc IRouterBurner
+     * @inheritdoc IBurnerRouter
      */
     PendingUint48 public pendingDelay;
 
     /**
-     * @inheritdoc IRouterBurner
+     * @inheritdoc IBurnerRouter
      */
     Address public globalReceiver;
 
     /**
-     * @inheritdoc IRouterBurner
+     * @inheritdoc IBurnerRouter
      */
     PendingAddress public pendingGlobalReceiver;
 
     /**
-     * @inheritdoc IRouterBurner
+     * @inheritdoc IBurnerRouter
      */
     mapping(address network => Address receiver) public networkReceiver;
 
     /**
-     * @inheritdoc IRouterBurner
+     * @inheritdoc IBurnerRouter
      */
     mapping(address network => PendingAddress pendingReceiver) public pendingNetworkReceiver;
 
     /**
-     * @inheritdoc IRouterBurner
+     * @inheritdoc IBurnerRouter
      */
     mapping(address network => mapping(address operator => Address receiver)) public operatorNetworkReceiver;
 
     /**
-     * @inheritdoc IRouterBurner
+     * @inheritdoc IBurnerRouter
      */
     mapping(address network => mapping(address operator => PendingAddress pendingReceiver)) public
         pendingOperatorNetworkReceiver;
 
     /**
-     * @inheritdoc IRouterBurner
+     * @inheritdoc IBurnerRouter
      */
     mapping(address receiver => uint256 amount) public balanceOf;
 
@@ -88,7 +88,7 @@ contract RouterBurner is OwnableUpgradeable, IRouterBurner {
     }
 
     /**
-     * @inheritdoc IRouterBurner
+     * @inheritdoc IBurnerRouter
      */
     function triggerTransfer(
         address receiver
@@ -107,7 +107,7 @@ contract RouterBurner is OwnableUpgradeable, IRouterBurner {
     }
 
     /**
-     * @inheritdoc IRouterBurner
+     * @inheritdoc IBurnerRouter
      */
     function setGlobalReceiver(
         address receiver
@@ -118,7 +118,7 @@ contract RouterBurner is OwnableUpgradeable, IRouterBurner {
     }
 
     /**
-     * @inheritdoc IRouterBurner
+     * @inheritdoc IBurnerRouter
      */
     function acceptGlobalReceiver() external {
         _acceptReceiver(globalReceiver, pendingGlobalReceiver);
@@ -127,7 +127,7 @@ contract RouterBurner is OwnableUpgradeable, IRouterBurner {
     }
 
     /**
-     * @inheritdoc IRouterBurner
+     * @inheritdoc IBurnerRouter
      */
     function setNetworkReceiver(address network, address receiver) external onlyOwner {
         _setReceiver(receiver, networkReceiver[network], pendingNetworkReceiver[network]);
@@ -136,7 +136,7 @@ contract RouterBurner is OwnableUpgradeable, IRouterBurner {
     }
 
     /**
-     * @inheritdoc IRouterBurner
+     * @inheritdoc IBurnerRouter
      */
     function acceptNetworkReceiver(
         address network
@@ -147,7 +147,7 @@ contract RouterBurner is OwnableUpgradeable, IRouterBurner {
     }
 
     /**
-     * @inheritdoc IRouterBurner
+     * @inheritdoc IBurnerRouter
      */
     function setOperatorNetworkReceiver(address network, address operator, address receiver) external onlyOwner {
         _setReceiver(
@@ -158,7 +158,7 @@ contract RouterBurner is OwnableUpgradeable, IRouterBurner {
     }
 
     /**
-     * @inheritdoc IRouterBurner
+     * @inheritdoc IBurnerRouter
      */
     function acceptOperatorNetworkReceiver(address network, address operator) external {
         _acceptReceiver(operatorNetworkReceiver[network][operator], pendingOperatorNetworkReceiver[network][operator]);
@@ -167,7 +167,7 @@ contract RouterBurner is OwnableUpgradeable, IRouterBurner {
     }
 
     /**
-     * @inheritdoc IRouterBurner
+     * @inheritdoc IBurnerRouter
      */
     function setDelay(
         uint48 newDelay
@@ -192,7 +192,7 @@ contract RouterBurner is OwnableUpgradeable, IRouterBurner {
     }
 
     /**
-     * @inheritdoc IRouterBurner
+     * @inheritdoc IBurnerRouter
      */
     function acceptDelay() external {
         if (pendingDelay.timestamp == 0 || pendingDelay.timestamp > Time.timestamp()) {

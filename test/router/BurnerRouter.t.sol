@@ -28,11 +28,11 @@ import {IBaseSlasher} from "@symbioticfi/core/src/interfaces/slasher/IBaseSlashe
 import {ISlasher} from "@symbioticfi/core/src/interfaces/slasher/ISlasher.sol";
 import {Subnetwork} from "@symbioticfi/core/src/contracts/libraries/Subnetwork.sol";
 
-import {RouterBurnerFactory} from "../../src/contracts/router/RouterBurnerFactory.sol";
-import {RouterBurner} from "../../src/contracts/router/RouterBurner.sol";
-import {IRouterBurner} from "../../src/interfaces/router/IRouterBurner.sol";
+import {BurnerRouterFactory} from "../../src/contracts/router/BurnerRouterFactory.sol";
+import {BurnerRouter} from "../../src/contracts/router/BurnerRouter.sol";
+import {IBurnerRouter} from "../../src/interfaces/router/IBurnerRouter.sol";
 
-contract RouterBurnerTest is Test {
+contract BurnerRouterTest is Test {
     using Subnetwork for bytes32;
     using Subnetwork for address;
 
@@ -61,8 +61,8 @@ contract RouterBurnerTest is Test {
     FullRestakeDelegator delegator;
     Slasher slasher;
 
-    RouterBurnerFactory routerBurnerFactory;
-    RouterBurner routerBurner;
+    BurnerRouterFactory burnerRouterFactory;
+    BurnerRouter burnerRouter;
 
     function setUp() public {
         owner = address(this);
@@ -155,14 +155,14 @@ contract RouterBurnerTest is Test {
         blockTimestamp = blockTimestamp + 1_720_700_948;
         vm.warp(blockTimestamp);
 
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](0);
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](0);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](0);
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](0);
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: alice,
             collateral: address(collateral),
             delay: 21 days,
@@ -171,55 +171,55 @@ contract RouterBurnerTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
-        routerBurner = RouterBurner(routerBurnerAddress);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
+        burnerRouter = BurnerRouter(burnerRouterAddress);
 
-        (vault, delegator, slasher) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
+        (vault, delegator, slasher) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
 
         vm.startPrank(alice);
-        routerBurner.setGlobalReceiver(bob);
+        burnerRouter.setGlobalReceiver(bob);
         vm.stopPrank();
 
-        assertEq(routerBurner.globalReceiver(), alice);
+        assertEq(burnerRouter.globalReceiver(), alice);
 
-        (address pendingGlobalReceiver, uint48 pendingTimestamp) = routerBurner.pendingGlobalReceiver();
+        (address pendingGlobalReceiver, uint48 pendingTimestamp) = burnerRouter.pendingGlobalReceiver();
         assertEq(pendingGlobalReceiver, bob);
         assertEq(pendingTimestamp, blockTimestamp + 21 days);
 
         blockTimestamp = blockTimestamp + 1;
         vm.warp(blockTimestamp);
 
-        (pendingGlobalReceiver, pendingTimestamp) = routerBurner.pendingGlobalReceiver();
+        (pendingGlobalReceiver, pendingTimestamp) = burnerRouter.pendingGlobalReceiver();
         assertEq(pendingGlobalReceiver, bob);
         assertEq(pendingTimestamp, blockTimestamp + 21 days - 1);
 
         vm.startPrank(alice);
-        routerBurner.setGlobalReceiver(address(this));
+        burnerRouter.setGlobalReceiver(address(this));
         vm.stopPrank();
 
-        assertEq(routerBurner.globalReceiver(), alice);
+        assertEq(burnerRouter.globalReceiver(), alice);
 
-        (pendingGlobalReceiver, pendingTimestamp) = routerBurner.pendingGlobalReceiver();
+        (pendingGlobalReceiver, pendingTimestamp) = burnerRouter.pendingGlobalReceiver();
         assertEq(pendingGlobalReceiver, address(this));
         assertEq(pendingTimestamp, blockTimestamp + 21 days);
 
         vm.startPrank(alice);
-        routerBurner.setGlobalReceiver(alice);
+        burnerRouter.setGlobalReceiver(alice);
         vm.stopPrank();
 
-        assertEq(routerBurner.globalReceiver(), alice);
+        assertEq(burnerRouter.globalReceiver(), alice);
 
-        (pendingGlobalReceiver, pendingTimestamp) = routerBurner.pendingGlobalReceiver();
+        (pendingGlobalReceiver, pendingTimestamp) = burnerRouter.pendingGlobalReceiver();
         assertEq(pendingGlobalReceiver, address(0));
         assertEq(pendingTimestamp, 0);
 
         vm.startPrank(alice);
-        routerBurner.setGlobalReceiver(bob);
+        burnerRouter.setGlobalReceiver(bob);
         vm.stopPrank();
 
-        assertEq(routerBurner.globalReceiver(), alice);
+        assertEq(burnerRouter.globalReceiver(), alice);
 
-        (pendingGlobalReceiver, pendingTimestamp) = routerBurner.pendingGlobalReceiver();
+        (pendingGlobalReceiver, pendingTimestamp) = burnerRouter.pendingGlobalReceiver();
         assertEq(pendingGlobalReceiver, bob);
         assertEq(pendingTimestamp, blockTimestamp + 21 days);
 
@@ -227,12 +227,12 @@ contract RouterBurnerTest is Test {
         vm.warp(blockTimestamp);
 
         vm.startPrank(alice);
-        routerBurner.setGlobalReceiver(alice);
+        burnerRouter.setGlobalReceiver(alice);
         vm.stopPrank();
 
-        assertEq(routerBurner.globalReceiver(), bob);
+        assertEq(burnerRouter.globalReceiver(), bob);
 
-        (pendingGlobalReceiver, pendingTimestamp) = routerBurner.pendingGlobalReceiver();
+        (pendingGlobalReceiver, pendingTimestamp) = burnerRouter.pendingGlobalReceiver();
         assertEq(pendingGlobalReceiver, alice);
         assertEq(pendingTimestamp, blockTimestamp + 21 days);
     }
@@ -242,14 +242,14 @@ contract RouterBurnerTest is Test {
         blockTimestamp = blockTimestamp + 1_720_700_948;
         vm.warp(blockTimestamp);
 
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](0);
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](0);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](0);
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](0);
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: alice,
             collateral: address(collateral),
             delay: 21 days,
@@ -258,14 +258,14 @@ contract RouterBurnerTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
-        routerBurner = RouterBurner(routerBurnerAddress);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
+        burnerRouter = BurnerRouter(burnerRouterAddress);
 
-        (vault, delegator, slasher) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
+        (vault, delegator, slasher) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
 
         vm.startPrank(alice);
-        vm.expectRevert(IRouterBurner.AlreadySet.selector);
-        routerBurner.setGlobalReceiver(alice);
+        vm.expectRevert(IBurnerRouter.AlreadySet.selector);
+        burnerRouter.setGlobalReceiver(alice);
         vm.stopPrank();
     }
 
@@ -274,14 +274,14 @@ contract RouterBurnerTest is Test {
         blockTimestamp = blockTimestamp + 1_720_700_948;
         vm.warp(blockTimestamp);
 
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](0);
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](0);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](0);
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](0);
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: alice,
             collateral: address(collateral),
             delay: 21 days,
@@ -290,25 +290,25 @@ contract RouterBurnerTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
-        routerBurner = RouterBurner(routerBurnerAddress);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
+        burnerRouter = BurnerRouter(burnerRouterAddress);
 
-        (vault, delegator, slasher) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
+        (vault, delegator, slasher) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
 
         vm.startPrank(alice);
-        routerBurner.setGlobalReceiver(bob);
+        burnerRouter.setGlobalReceiver(bob);
         vm.stopPrank();
 
         blockTimestamp = blockTimestamp + 21 days;
         vm.warp(blockTimestamp);
 
         vm.startPrank(bob);
-        routerBurner.acceptGlobalReceiver();
+        burnerRouter.acceptGlobalReceiver();
         vm.stopPrank();
 
-        assertEq(routerBurner.globalReceiver(), bob);
+        assertEq(burnerRouter.globalReceiver(), bob);
 
-        (address pendingGlobalReceiver, uint48 pendingTimestamp) = routerBurner.pendingGlobalReceiver();
+        (address pendingGlobalReceiver, uint48 pendingTimestamp) = burnerRouter.pendingGlobalReceiver();
         assertEq(pendingGlobalReceiver, address(0));
         assertEq(pendingTimestamp, 0);
     }
@@ -318,14 +318,14 @@ contract RouterBurnerTest is Test {
         blockTimestamp = blockTimestamp + 1_720_700_948;
         vm.warp(blockTimestamp);
 
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](0);
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](0);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](0);
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](0);
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: alice,
             collateral: address(collateral),
             delay: 21 days,
@@ -334,21 +334,21 @@ contract RouterBurnerTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
-        routerBurner = RouterBurner(routerBurnerAddress);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
+        burnerRouter = BurnerRouter(burnerRouterAddress);
 
-        (vault, delegator, slasher) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
+        (vault, delegator, slasher) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
 
         vm.startPrank(alice);
-        routerBurner.setGlobalReceiver(bob);
+        burnerRouter.setGlobalReceiver(bob);
         vm.stopPrank();
 
         blockTimestamp = blockTimestamp + 20 days;
         vm.warp(blockTimestamp);
 
         vm.startPrank(bob);
-        vm.expectRevert(IRouterBurner.NotReady.selector);
-        routerBurner.acceptGlobalReceiver();
+        vm.expectRevert(IBurnerRouter.NotReady.selector);
+        burnerRouter.acceptGlobalReceiver();
         vm.stopPrank();
     }
 
@@ -357,15 +357,15 @@ contract RouterBurnerTest is Test {
         blockTimestamp = blockTimestamp + 1_720_700_948;
         vm.warp(blockTimestamp);
 
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](1);
-        networkReceivers[0] = IRouterBurner.NetworkReceiver({network: address(0x1), receiver: alice});
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](0);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](1);
+        networkReceivers[0] = IBurnerRouter.NetworkReceiver({network: address(0x1), receiver: alice});
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](0);
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: alice,
             collateral: address(collateral),
             delay: 21 days,
@@ -374,55 +374,55 @@ contract RouterBurnerTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
-        routerBurner = RouterBurner(routerBurnerAddress);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
+        burnerRouter = BurnerRouter(burnerRouterAddress);
 
-        (vault,,) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
+        (vault,,) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
 
         vm.startPrank(alice);
-        routerBurner.setNetworkReceiver(address(0x1), bob);
+        burnerRouter.setNetworkReceiver(address(0x1), bob);
         vm.stopPrank();
 
-        assertEq(routerBurner.networkReceiver(address(0x1)), alice);
+        assertEq(burnerRouter.networkReceiver(address(0x1)), alice);
 
-        (address pendingReceiver, uint48 pendingTimestamp) = routerBurner.pendingNetworkReceiver(address(0x1));
+        (address pendingReceiver, uint48 pendingTimestamp) = burnerRouter.pendingNetworkReceiver(address(0x1));
         assertEq(pendingReceiver, bob);
         assertEq(pendingTimestamp, blockTimestamp + 21 days);
 
         blockTimestamp = blockTimestamp + 1;
         vm.warp(blockTimestamp);
 
-        (pendingReceiver, pendingTimestamp) = routerBurner.pendingNetworkReceiver(address(0x1));
+        (pendingReceiver, pendingTimestamp) = burnerRouter.pendingNetworkReceiver(address(0x1));
         assertEq(pendingReceiver, bob);
         assertEq(pendingTimestamp, blockTimestamp + 21 days - 1);
 
         vm.startPrank(alice);
-        routerBurner.setNetworkReceiver(address(0x1), address(this));
+        burnerRouter.setNetworkReceiver(address(0x1), address(this));
         vm.stopPrank();
 
-        assertEq(routerBurner.networkReceiver(address(0x1)), alice);
+        assertEq(burnerRouter.networkReceiver(address(0x1)), alice);
 
-        (pendingReceiver, pendingTimestamp) = routerBurner.pendingNetworkReceiver(address(0x1));
+        (pendingReceiver, pendingTimestamp) = burnerRouter.pendingNetworkReceiver(address(0x1));
         assertEq(pendingReceiver, address(this));
         assertEq(pendingTimestamp, blockTimestamp + 21 days);
 
         vm.startPrank(alice);
-        routerBurner.setNetworkReceiver(address(0x1), alice);
+        burnerRouter.setNetworkReceiver(address(0x1), alice);
         vm.stopPrank();
 
-        assertEq(routerBurner.networkReceiver(address(0x1)), alice);
+        assertEq(burnerRouter.networkReceiver(address(0x1)), alice);
 
-        (pendingReceiver, pendingTimestamp) = routerBurner.pendingNetworkReceiver(address(0x1));
+        (pendingReceiver, pendingTimestamp) = burnerRouter.pendingNetworkReceiver(address(0x1));
         assertEq(pendingReceiver, address(0));
         assertEq(pendingTimestamp, 0);
 
         vm.startPrank(alice);
-        routerBurner.setNetworkReceiver(address(0x1), bob);
+        burnerRouter.setNetworkReceiver(address(0x1), bob);
         vm.stopPrank();
 
-        assertEq(routerBurner.networkReceiver(address(0x1)), alice);
+        assertEq(burnerRouter.networkReceiver(address(0x1)), alice);
 
-        (pendingReceiver, pendingTimestamp) = routerBurner.pendingNetworkReceiver(address(0x1));
+        (pendingReceiver, pendingTimestamp) = burnerRouter.pendingNetworkReceiver(address(0x1));
         assertEq(pendingReceiver, bob);
         assertEq(pendingTimestamp, blockTimestamp + 21 days);
 
@@ -430,12 +430,12 @@ contract RouterBurnerTest is Test {
         vm.warp(blockTimestamp);
 
         vm.startPrank(alice);
-        routerBurner.setNetworkReceiver(address(0x1), alice);
+        burnerRouter.setNetworkReceiver(address(0x1), alice);
         vm.stopPrank();
 
-        assertEq(routerBurner.networkReceiver(address(0x1)), bob);
+        assertEq(burnerRouter.networkReceiver(address(0x1)), bob);
 
-        (pendingReceiver, pendingTimestamp) = routerBurner.pendingNetworkReceiver(address(0x1));
+        (pendingReceiver, pendingTimestamp) = burnerRouter.pendingNetworkReceiver(address(0x1));
         assertEq(pendingReceiver, alice);
         assertEq(pendingTimestamp, blockTimestamp + 21 days);
     }
@@ -445,15 +445,15 @@ contract RouterBurnerTest is Test {
         blockTimestamp = blockTimestamp + 1_720_700_948;
         vm.warp(blockTimestamp);
 
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](1);
-        networkReceivers[0] = IRouterBurner.NetworkReceiver({network: address(0x1), receiver: alice});
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](0);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](1);
+        networkReceivers[0] = IBurnerRouter.NetworkReceiver({network: address(0x1), receiver: alice});
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](0);
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: alice,
             collateral: address(collateral),
             delay: 21 days,
@@ -462,14 +462,14 @@ contract RouterBurnerTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
-        routerBurner = RouterBurner(routerBurnerAddress);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
+        burnerRouter = BurnerRouter(burnerRouterAddress);
 
-        (vault,,) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
+        (vault,,) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
 
         vm.startPrank(alice);
-        vm.expectRevert(IRouterBurner.AlreadySet.selector);
-        routerBurner.setNetworkReceiver(address(0x1), alice);
+        vm.expectRevert(IBurnerRouter.AlreadySet.selector);
+        burnerRouter.setNetworkReceiver(address(0x1), alice);
         vm.stopPrank();
     }
 
@@ -478,15 +478,15 @@ contract RouterBurnerTest is Test {
         blockTimestamp = blockTimestamp + 1_720_700_948;
         vm.warp(blockTimestamp);
 
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](1);
-        networkReceivers[0] = IRouterBurner.NetworkReceiver({network: address(0x1), receiver: alice});
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](0);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](1);
+        networkReceivers[0] = IBurnerRouter.NetworkReceiver({network: address(0x1), receiver: alice});
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](0);
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: alice,
             collateral: address(collateral),
             delay: 21 days,
@@ -495,25 +495,25 @@ contract RouterBurnerTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
-        routerBurner = RouterBurner(routerBurnerAddress);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
+        burnerRouter = BurnerRouter(burnerRouterAddress);
 
-        (vault,,) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
+        (vault,,) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
 
         vm.startPrank(alice);
-        routerBurner.setNetworkReceiver(address(0x1), bob);
+        burnerRouter.setNetworkReceiver(address(0x1), bob);
         vm.stopPrank();
 
         blockTimestamp = blockTimestamp + 21 days;
         vm.warp(blockTimestamp);
 
         vm.startPrank(bob);
-        routerBurner.acceptNetworkReceiver(address(0x1));
+        burnerRouter.acceptNetworkReceiver(address(0x1));
         vm.stopPrank();
 
-        assertEq(routerBurner.networkReceiver(address(0x1)), bob);
+        assertEq(burnerRouter.networkReceiver(address(0x1)), bob);
 
-        (address pendingReceiver, uint48 pendingTimestamp) = routerBurner.pendingNetworkReceiver(address(0x1));
+        (address pendingReceiver, uint48 pendingTimestamp) = burnerRouter.pendingNetworkReceiver(address(0x1));
         assertEq(pendingReceiver, address(0));
         assertEq(pendingTimestamp, 0);
     }
@@ -523,15 +523,15 @@ contract RouterBurnerTest is Test {
         blockTimestamp = blockTimestamp + 1_720_700_948;
         vm.warp(blockTimestamp);
 
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](1);
-        networkReceivers[0] = IRouterBurner.NetworkReceiver({network: address(0x1), receiver: alice});
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](0);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](1);
+        networkReceivers[0] = IBurnerRouter.NetworkReceiver({network: address(0x1), receiver: alice});
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](0);
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: alice,
             collateral: address(collateral),
             delay: 21 days,
@@ -540,21 +540,21 @@ contract RouterBurnerTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
-        routerBurner = RouterBurner(routerBurnerAddress);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
+        burnerRouter = BurnerRouter(burnerRouterAddress);
 
-        (vault,,) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
+        (vault,,) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
 
         vm.startPrank(alice);
-        routerBurner.setNetworkReceiver(address(0x1), bob);
+        burnerRouter.setNetworkReceiver(address(0x1), bob);
         vm.stopPrank();
 
         blockTimestamp = blockTimestamp + 20 days;
         vm.warp(blockTimestamp);
 
         vm.startPrank(bob);
-        vm.expectRevert(IRouterBurner.NotReady.selector);
-        routerBurner.acceptNetworkReceiver(address(0x1));
+        vm.expectRevert(IBurnerRouter.NotReady.selector);
+        burnerRouter.acceptNetworkReceiver(address(0x1));
         vm.stopPrank();
     }
 
@@ -563,16 +563,16 @@ contract RouterBurnerTest is Test {
         blockTimestamp = blockTimestamp + 1_720_700_948;
         vm.warp(blockTimestamp);
 
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](0);
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](1);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](0);
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](1);
         operatorNetworkReceivers[0] =
-            IRouterBurner.OperatorNetworkReceiver({network: address(0x1), operator: address(0x2), receiver: alice});
+            IBurnerRouter.OperatorNetworkReceiver({network: address(0x1), operator: address(0x2), receiver: alice});
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: alice,
             collateral: address(collateral),
             delay: 21 days,
@@ -581,56 +581,56 @@ contract RouterBurnerTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
-        routerBurner = RouterBurner(routerBurnerAddress);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
+        burnerRouter = BurnerRouter(burnerRouterAddress);
 
-        (vault,,) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
+        (vault,,) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
 
         vm.startPrank(alice);
-        routerBurner.setOperatorNetworkReceiver(address(0x1), address(0x2), bob);
+        burnerRouter.setOperatorNetworkReceiver(address(0x1), address(0x2), bob);
         vm.stopPrank();
 
-        assertEq(routerBurner.operatorNetworkReceiver(address(0x1), address(0x2)), alice);
+        assertEq(burnerRouter.operatorNetworkReceiver(address(0x1), address(0x2)), alice);
 
         (address pendingReceiver, uint48 pendingTimestamp) =
-            routerBurner.pendingOperatorNetworkReceiver(address(0x1), address(0x2));
+            burnerRouter.pendingOperatorNetworkReceiver(address(0x1), address(0x2));
         assertEq(pendingReceiver, bob);
         assertEq(pendingTimestamp, blockTimestamp + 21 days);
 
         blockTimestamp = blockTimestamp + 1;
         vm.warp(blockTimestamp);
 
-        (pendingReceiver, pendingTimestamp) = routerBurner.pendingOperatorNetworkReceiver(address(0x1), address(0x2));
+        (pendingReceiver, pendingTimestamp) = burnerRouter.pendingOperatorNetworkReceiver(address(0x1), address(0x2));
         assertEq(pendingReceiver, bob);
         assertEq(pendingTimestamp, blockTimestamp + 21 days - 1);
 
         vm.startPrank(alice);
-        routerBurner.setOperatorNetworkReceiver(address(0x1), address(0x2), address(this));
+        burnerRouter.setOperatorNetworkReceiver(address(0x1), address(0x2), address(this));
         vm.stopPrank();
 
-        assertEq(routerBurner.operatorNetworkReceiver(address(0x1), address(0x2)), alice);
+        assertEq(burnerRouter.operatorNetworkReceiver(address(0x1), address(0x2)), alice);
 
-        (pendingReceiver, pendingTimestamp) = routerBurner.pendingOperatorNetworkReceiver(address(0x1), address(0x2));
+        (pendingReceiver, pendingTimestamp) = burnerRouter.pendingOperatorNetworkReceiver(address(0x1), address(0x2));
         assertEq(pendingReceiver, address(this));
         assertEq(pendingTimestamp, blockTimestamp + 21 days);
 
         vm.startPrank(alice);
-        routerBurner.setOperatorNetworkReceiver(address(0x1), address(0x2), alice);
+        burnerRouter.setOperatorNetworkReceiver(address(0x1), address(0x2), alice);
         vm.stopPrank();
 
-        assertEq(routerBurner.operatorNetworkReceiver(address(0x1), address(0x2)), alice);
+        assertEq(burnerRouter.operatorNetworkReceiver(address(0x1), address(0x2)), alice);
 
-        (pendingReceiver, pendingTimestamp) = routerBurner.pendingOperatorNetworkReceiver(address(0x1), address(0x2));
+        (pendingReceiver, pendingTimestamp) = burnerRouter.pendingOperatorNetworkReceiver(address(0x1), address(0x2));
         assertEq(pendingReceiver, address(0));
         assertEq(pendingTimestamp, 0);
 
         vm.startPrank(alice);
-        routerBurner.setOperatorNetworkReceiver(address(0x1), address(0x2), bob);
+        burnerRouter.setOperatorNetworkReceiver(address(0x1), address(0x2), bob);
         vm.stopPrank();
 
-        assertEq(routerBurner.operatorNetworkReceiver(address(0x1), address(0x2)), alice);
+        assertEq(burnerRouter.operatorNetworkReceiver(address(0x1), address(0x2)), alice);
 
-        (pendingReceiver, pendingTimestamp) = routerBurner.pendingOperatorNetworkReceiver(address(0x1), address(0x2));
+        (pendingReceiver, pendingTimestamp) = burnerRouter.pendingOperatorNetworkReceiver(address(0x1), address(0x2));
         assertEq(pendingReceiver, bob);
         assertEq(pendingTimestamp, blockTimestamp + 21 days);
 
@@ -638,12 +638,12 @@ contract RouterBurnerTest is Test {
         vm.warp(blockTimestamp);
 
         vm.startPrank(alice);
-        routerBurner.setOperatorNetworkReceiver(address(0x1), address(0x2), alice);
+        burnerRouter.setOperatorNetworkReceiver(address(0x1), address(0x2), alice);
         vm.stopPrank();
 
-        assertEq(routerBurner.operatorNetworkReceiver(address(0x1), address(0x2)), bob);
+        assertEq(burnerRouter.operatorNetworkReceiver(address(0x1), address(0x2)), bob);
 
-        (pendingReceiver, pendingTimestamp) = routerBurner.pendingOperatorNetworkReceiver(address(0x1), address(0x2));
+        (pendingReceiver, pendingTimestamp) = burnerRouter.pendingOperatorNetworkReceiver(address(0x1), address(0x2));
         assertEq(pendingReceiver, alice);
         assertEq(pendingTimestamp, blockTimestamp + 21 days);
     }
@@ -653,16 +653,16 @@ contract RouterBurnerTest is Test {
         blockTimestamp = blockTimestamp + 1_720_700_948;
         vm.warp(blockTimestamp);
 
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](0);
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](1);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](0);
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](1);
         operatorNetworkReceivers[0] =
-            IRouterBurner.OperatorNetworkReceiver({network: address(0x1), operator: address(0x2), receiver: alice});
+            IBurnerRouter.OperatorNetworkReceiver({network: address(0x1), operator: address(0x2), receiver: alice});
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: alice,
             collateral: address(collateral),
             delay: 21 days,
@@ -671,14 +671,14 @@ contract RouterBurnerTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
-        routerBurner = RouterBurner(routerBurnerAddress);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
+        burnerRouter = BurnerRouter(burnerRouterAddress);
 
-        (vault,,) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
+        (vault,,) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
 
         vm.startPrank(alice);
-        vm.expectRevert(IRouterBurner.AlreadySet.selector);
-        routerBurner.setOperatorNetworkReceiver(address(0x1), address(0x2), alice);
+        vm.expectRevert(IBurnerRouter.AlreadySet.selector);
+        burnerRouter.setOperatorNetworkReceiver(address(0x1), address(0x2), alice);
         vm.stopPrank();
     }
 
@@ -687,16 +687,16 @@ contract RouterBurnerTest is Test {
         blockTimestamp = blockTimestamp + 1_720_700_948;
         vm.warp(blockTimestamp);
 
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](0);
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](1);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](0);
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](1);
         operatorNetworkReceivers[0] =
-            IRouterBurner.OperatorNetworkReceiver({network: address(0x1), operator: address(0x2), receiver: alice});
+            IBurnerRouter.OperatorNetworkReceiver({network: address(0x1), operator: address(0x2), receiver: alice});
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: alice,
             collateral: address(collateral),
             delay: 21 days,
@@ -705,26 +705,26 @@ contract RouterBurnerTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
-        routerBurner = RouterBurner(routerBurnerAddress);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
+        burnerRouter = BurnerRouter(burnerRouterAddress);
 
-        (vault,,) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
+        (vault,,) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
 
         vm.startPrank(alice);
-        routerBurner.setOperatorNetworkReceiver(address(0x1), address(0x2), bob);
+        burnerRouter.setOperatorNetworkReceiver(address(0x1), address(0x2), bob);
         vm.stopPrank();
 
         blockTimestamp = blockTimestamp + 21 days;
         vm.warp(blockTimestamp);
 
         vm.startPrank(bob);
-        routerBurner.acceptOperatorNetworkReceiver(address(0x1), address(0x2));
+        burnerRouter.acceptOperatorNetworkReceiver(address(0x1), address(0x2));
         vm.stopPrank();
 
-        assertEq(routerBurner.operatorNetworkReceiver(address(0x1), address(0x2)), bob);
+        assertEq(burnerRouter.operatorNetworkReceiver(address(0x1), address(0x2)), bob);
 
         (address pendingReceiver, uint48 pendingTimestamp) =
-            routerBurner.pendingOperatorNetworkReceiver(address(0x1), address(0x2));
+            burnerRouter.pendingOperatorNetworkReceiver(address(0x1), address(0x2));
         assertEq(pendingReceiver, address(0));
         assertEq(pendingTimestamp, 0);
     }
@@ -734,16 +734,16 @@ contract RouterBurnerTest is Test {
         blockTimestamp = blockTimestamp + 1_720_700_948;
         vm.warp(blockTimestamp);
 
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](0);
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](1);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](0);
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](1);
         operatorNetworkReceivers[0] =
-            IRouterBurner.OperatorNetworkReceiver({network: address(0x1), operator: address(0x2), receiver: alice});
+            IBurnerRouter.OperatorNetworkReceiver({network: address(0x1), operator: address(0x2), receiver: alice});
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: alice,
             collateral: address(collateral),
             delay: 21 days,
@@ -752,21 +752,21 @@ contract RouterBurnerTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
-        routerBurner = RouterBurner(routerBurnerAddress);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
+        burnerRouter = BurnerRouter(burnerRouterAddress);
 
-        (vault,,) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
+        (vault,,) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
 
         vm.startPrank(alice);
-        routerBurner.setOperatorNetworkReceiver(address(0x1), address(0x2), bob);
+        burnerRouter.setOperatorNetworkReceiver(address(0x1), address(0x2), bob);
         vm.stopPrank();
 
         blockTimestamp = blockTimestamp + 20 days;
         vm.warp(blockTimestamp);
 
         vm.startPrank(bob);
-        vm.expectRevert(IRouterBurner.NotReady.selector);
-        routerBurner.acceptOperatorNetworkReceiver(address(0x1), address(0x2));
+        vm.expectRevert(IBurnerRouter.NotReady.selector);
+        burnerRouter.acceptOperatorNetworkReceiver(address(0x1), address(0x2));
         vm.stopPrank();
     }
 
@@ -775,14 +775,14 @@ contract RouterBurnerTest is Test {
         blockTimestamp = blockTimestamp + 1_720_700_948;
         vm.warp(blockTimestamp);
 
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](0);
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](0);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](0);
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](0);
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: alice,
             collateral: address(collateral),
             delay: 21 days,
@@ -791,55 +791,55 @@ contract RouterBurnerTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
-        routerBurner = RouterBurner(routerBurnerAddress);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
+        burnerRouter = BurnerRouter(burnerRouterAddress);
 
-        (vault, delegator, slasher) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
+        (vault, delegator, slasher) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
 
         vm.startPrank(alice);
-        routerBurner.setDelay(7 days);
+        burnerRouter.setDelay(7 days);
         vm.stopPrank();
 
-        assertEq(routerBurner.delay(), 21 days);
+        assertEq(burnerRouter.delay(), 21 days);
 
-        (uint48 pendingDelay, uint48 pendingTimestamp) = routerBurner.pendingDelay();
+        (uint48 pendingDelay, uint48 pendingTimestamp) = burnerRouter.pendingDelay();
         assertEq(pendingDelay, 7 days);
         assertEq(pendingTimestamp, blockTimestamp + 21 days);
 
         blockTimestamp = blockTimestamp + 1;
         vm.warp(blockTimestamp);
 
-        (pendingDelay, pendingTimestamp) = routerBurner.pendingDelay();
+        (pendingDelay, pendingTimestamp) = burnerRouter.pendingDelay();
         assertEq(pendingDelay, 7 days);
         assertEq(pendingTimestamp, blockTimestamp + 21 days - 1);
 
         vm.startPrank(alice);
-        routerBurner.setDelay(8 days);
+        burnerRouter.setDelay(8 days);
         vm.stopPrank();
 
-        assertEq(routerBurner.delay(), 21 days);
+        assertEq(burnerRouter.delay(), 21 days);
 
-        (pendingDelay, pendingTimestamp) = routerBurner.pendingDelay();
+        (pendingDelay, pendingTimestamp) = burnerRouter.pendingDelay();
         assertEq(pendingDelay, 8 days);
         assertEq(pendingTimestamp, blockTimestamp + 21 days);
 
         vm.startPrank(alice);
-        routerBurner.setDelay(21 days);
+        burnerRouter.setDelay(21 days);
         vm.stopPrank();
 
-        assertEq(routerBurner.delay(), 21 days);
+        assertEq(burnerRouter.delay(), 21 days);
 
-        (pendingDelay, pendingTimestamp) = routerBurner.pendingDelay();
+        (pendingDelay, pendingTimestamp) = burnerRouter.pendingDelay();
         assertEq(pendingDelay, 0);
         assertEq(pendingTimestamp, 0);
 
         vm.startPrank(alice);
-        routerBurner.setDelay(7 days);
+        burnerRouter.setDelay(7 days);
         vm.stopPrank();
 
-        assertEq(routerBurner.delay(), 21 days);
+        assertEq(burnerRouter.delay(), 21 days);
 
-        (pendingDelay, pendingTimestamp) = routerBurner.pendingDelay();
+        (pendingDelay, pendingTimestamp) = burnerRouter.pendingDelay();
         assertEq(pendingDelay, 7 days);
         assertEq(pendingTimestamp, blockTimestamp + 21 days);
 
@@ -847,12 +847,12 @@ contract RouterBurnerTest is Test {
         vm.warp(blockTimestamp);
 
         vm.startPrank(alice);
-        routerBurner.setDelay(21 days);
+        burnerRouter.setDelay(21 days);
         vm.stopPrank();
 
-        assertEq(routerBurner.delay(), 7 days);
+        assertEq(burnerRouter.delay(), 7 days);
 
-        (pendingDelay, pendingTimestamp) = routerBurner.pendingDelay();
+        (pendingDelay, pendingTimestamp) = burnerRouter.pendingDelay();
         assertEq(pendingDelay, 21 days);
         assertEq(pendingTimestamp, blockTimestamp + 7 days);
     }
@@ -862,14 +862,14 @@ contract RouterBurnerTest is Test {
         blockTimestamp = blockTimestamp + 1_720_700_948;
         vm.warp(blockTimestamp);
 
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](0);
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](0);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](0);
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](0);
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: alice,
             collateral: address(collateral),
             delay: 21 days,
@@ -878,14 +878,14 @@ contract RouterBurnerTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
-        routerBurner = RouterBurner(routerBurnerAddress);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
+        burnerRouter = BurnerRouter(burnerRouterAddress);
 
-        (vault, delegator, slasher) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
+        (vault, delegator, slasher) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
 
         vm.startPrank(alice);
-        vm.expectRevert(IRouterBurner.AlreadySet.selector);
-        routerBurner.setDelay(21 days);
+        vm.expectRevert(IBurnerRouter.AlreadySet.selector);
+        burnerRouter.setDelay(21 days);
         vm.stopPrank();
     }
 
@@ -894,14 +894,14 @@ contract RouterBurnerTest is Test {
         blockTimestamp = blockTimestamp + 1_720_700_948;
         vm.warp(blockTimestamp);
 
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](0);
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](0);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](0);
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](0);
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: alice,
             collateral: address(collateral),
             delay: 21 days,
@@ -910,25 +910,25 @@ contract RouterBurnerTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
-        routerBurner = RouterBurner(routerBurnerAddress);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
+        burnerRouter = BurnerRouter(burnerRouterAddress);
 
-        (vault, delegator, slasher) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
+        (vault, delegator, slasher) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
 
         vm.startPrank(alice);
-        routerBurner.setDelay(7 days);
+        burnerRouter.setDelay(7 days);
         vm.stopPrank();
 
         blockTimestamp = blockTimestamp + 21 days;
         vm.warp(blockTimestamp);
 
         vm.startPrank(bob);
-        routerBurner.acceptDelay();
+        burnerRouter.acceptDelay();
         vm.stopPrank();
 
-        assertEq(routerBurner.delay(), 7 days);
+        assertEq(burnerRouter.delay(), 7 days);
 
-        (uint48 pendingDelay, uint48 pendingTimestamp) = routerBurner.pendingDelay();
+        (uint48 pendingDelay, uint48 pendingTimestamp) = burnerRouter.pendingDelay();
         assertEq(pendingDelay, 0);
         assertEq(pendingTimestamp, 0);
     }
@@ -938,14 +938,14 @@ contract RouterBurnerTest is Test {
         blockTimestamp = blockTimestamp + 1_720_700_948;
         vm.warp(blockTimestamp);
 
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](0);
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](0);
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](0);
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](0);
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: alice,
             collateral: address(collateral),
             delay: 21 days,
@@ -954,21 +954,21 @@ contract RouterBurnerTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
-        routerBurner = RouterBurner(routerBurnerAddress);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
+        burnerRouter = BurnerRouter(burnerRouterAddress);
 
-        (vault, delegator, slasher) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
+        (vault, delegator, slasher) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
 
         vm.startPrank(alice);
-        routerBurner.setDelay(7 days);
+        burnerRouter.setDelay(7 days);
         vm.stopPrank();
 
         blockTimestamp = blockTimestamp + 20 days;
         vm.warp(blockTimestamp);
 
         vm.startPrank(bob);
-        vm.expectRevert(IRouterBurner.NotReady.selector);
-        routerBurner.acceptDelay();
+        vm.expectRevert(IBurnerRouter.NotReady.selector);
+        burnerRouter.acceptDelay();
         vm.stopPrank();
     }
 
@@ -981,20 +981,20 @@ contract RouterBurnerTest is Test {
         blockTimestamp = blockTimestamp + 1_720_700_948;
         vm.warp(blockTimestamp);
 
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](1);
-        networkReceivers[0] = IRouterBurner.NetworkReceiver({network: address(9876), receiver: address(2_345_665_432)});
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](1);
-        operatorNetworkReceivers[0] = IRouterBurner.OperatorNetworkReceiver({
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](1);
+        networkReceivers[0] = IBurnerRouter.NetworkReceiver({network: address(9876), receiver: address(2_345_665_432)});
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](1);
+        operatorNetworkReceivers[0] = IBurnerRouter.OperatorNetworkReceiver({
             network: address(9876),
             operator: address(98_765),
             receiver: address(3_456_776_543)
         });
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: alice,
             collateral: address(collateral),
             delay: 21 days,
@@ -1003,34 +1003,34 @@ contract RouterBurnerTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
-        routerBurner = RouterBurner(routerBurnerAddress);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
+        burnerRouter = BurnerRouter(burnerRouterAddress);
 
-        (vault,,) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
+        (vault,,) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
 
-        collateral.transfer(address(routerBurner), amount1);
+        collateral.transfer(address(burnerRouter), amount1);
 
-        routerBurner.onSlash(address(9876).subnetwork(111), address(98_765), 0, 0);
+        burnerRouter.onSlash(address(9876).subnetwork(111), address(98_765), 0, 0);
 
-        assertEq(routerBurner.balanceOf(address(3_456_776_543)), amount1);
+        assertEq(burnerRouter.balanceOf(address(3_456_776_543)), amount1);
 
-        collateral.transfer(address(routerBurner), amount2);
+        collateral.transfer(address(burnerRouter), amount2);
 
-        routerBurner.onSlash(address(9876).subnetwork(111), address(9876), 0, 0);
+        burnerRouter.onSlash(address(9876).subnetwork(111), address(9876), 0, 0);
 
-        assertEq(routerBurner.balanceOf(address(2_345_665_432)), amount2);
+        assertEq(burnerRouter.balanceOf(address(2_345_665_432)), amount2);
 
-        collateral.transfer(address(routerBurner), amount1);
+        collateral.transfer(address(burnerRouter), amount1);
 
-        routerBurner.onSlash(address(9876).subnetwork(111), address(98_765), 0, 0);
+        burnerRouter.onSlash(address(9876).subnetwork(111), address(98_765), 0, 0);
 
-        assertEq(routerBurner.balanceOf(address(3_456_776_543)), 2 * amount1);
+        assertEq(burnerRouter.balanceOf(address(3_456_776_543)), 2 * amount1);
 
-        collateral.transfer(address(routerBurner), amount3);
+        collateral.transfer(address(burnerRouter), amount3);
 
-        routerBurner.onSlash(address(987).subnetwork(111), address(98_765), 0, 0);
+        burnerRouter.onSlash(address(987).subnetwork(111), address(98_765), 0, 0);
 
-        assertEq(routerBurner.balanceOf(address(1_234_554_321)), amount3);
+        assertEq(burnerRouter.balanceOf(address(1_234_554_321)), amount3);
     }
 
     function test_TriggerTransfer(
@@ -1042,20 +1042,20 @@ contract RouterBurnerTest is Test {
         blockTimestamp = blockTimestamp + 1_720_700_948;
         vm.warp(blockTimestamp);
 
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](1);
-        networkReceivers[0] = IRouterBurner.NetworkReceiver({network: address(9876), receiver: address(2_345_665_432)});
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](1);
-        operatorNetworkReceivers[0] = IRouterBurner.OperatorNetworkReceiver({
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](1);
+        networkReceivers[0] = IBurnerRouter.NetworkReceiver({network: address(9876), receiver: address(2_345_665_432)});
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](1);
+        operatorNetworkReceivers[0] = IBurnerRouter.OperatorNetworkReceiver({
             network: address(9876),
             operator: address(98_765),
             receiver: address(3_456_776_543)
         });
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: alice,
             collateral: address(collateral),
             delay: 21 days,
@@ -1064,17 +1064,17 @@ contract RouterBurnerTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
-        routerBurner = RouterBurner(routerBurnerAddress);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
+        burnerRouter = BurnerRouter(burnerRouterAddress);
 
-        (vault,,) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
+        (vault,,) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
 
-        collateral.transfer(address(routerBurner), amount);
+        collateral.transfer(address(burnerRouter), amount);
 
-        routerBurner.onSlash(address(9876).subnetwork(111), address(98_765), 0, 0);
+        burnerRouter.onSlash(address(9876).subnetwork(111), address(98_765), 0, 0);
 
         uint256 balanceBefore = collateral.balanceOf(address(3_456_776_543));
-        assertEq(routerBurner.triggerTransfer(address(3_456_776_543)), amount);
+        assertEq(burnerRouter.triggerTransfer(address(3_456_776_543)), amount);
         assertEq(collateral.balanceOf(address(3_456_776_543)) - balanceBefore, amount);
     }
 
@@ -1087,20 +1087,20 @@ contract RouterBurnerTest is Test {
         blockTimestamp = blockTimestamp + 1_720_700_948;
         vm.warp(blockTimestamp);
 
-        address routerBurnerImplementation = address(new RouterBurner());
-        routerBurnerFactory = new RouterBurnerFactory(routerBurnerImplementation);
+        address burnerRouterImplementation = address(new BurnerRouter());
+        burnerRouterFactory = new BurnerRouterFactory(burnerRouterImplementation);
 
-        IRouterBurner.NetworkReceiver[] memory networkReceivers = new IRouterBurner.NetworkReceiver[](1);
-        networkReceivers[0] = IRouterBurner.NetworkReceiver({network: address(9876), receiver: address(2_345_665_432)});
-        IRouterBurner.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
-            new IRouterBurner.OperatorNetworkReceiver[](1);
-        operatorNetworkReceivers[0] = IRouterBurner.OperatorNetworkReceiver({
+        IBurnerRouter.NetworkReceiver[] memory networkReceivers = new IBurnerRouter.NetworkReceiver[](1);
+        networkReceivers[0] = IBurnerRouter.NetworkReceiver({network: address(9876), receiver: address(2_345_665_432)});
+        IBurnerRouter.OperatorNetworkReceiver[] memory operatorNetworkReceivers =
+            new IBurnerRouter.OperatorNetworkReceiver[](1);
+        operatorNetworkReceivers[0] = IBurnerRouter.OperatorNetworkReceiver({
             network: address(9876),
             operator: address(98_765),
             receiver: address(3_456_776_543)
         });
 
-        IRouterBurner.InitParams memory initParams = IRouterBurner.InitParams({
+        IBurnerRouter.InitParams memory initParams = IBurnerRouter.InitParams({
             owner: alice,
             collateral: address(collateral),
             delay: 21 days,
@@ -1109,15 +1109,15 @@ contract RouterBurnerTest is Test {
             operatorNetworkReceivers: operatorNetworkReceivers
         });
 
-        address routerBurnerAddress = routerBurnerFactory.create(initParams);
-        routerBurner = RouterBurner(routerBurnerAddress);
+        address burnerRouterAddress = burnerRouterFactory.create(initParams);
+        burnerRouter = BurnerRouter(burnerRouterAddress);
 
-        (vault,,) = _getVaultWithDelegatorWithSlasher(address(routerBurner));
+        (vault,,) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
 
-        collateral.transfer(address(routerBurner), amount);
+        collateral.transfer(address(burnerRouter), amount);
 
-        vm.expectRevert(IRouterBurner.InsufficientBalance.selector);
-        routerBurner.triggerTransfer(address(3_456_776_543));
+        vm.expectRevert(IBurnerRouter.InsufficientBalance.selector);
+        burnerRouter.triggerTransfer(address(3_456_776_543));
     }
 
     function _getVaultWithDelegatorWithSlasher(

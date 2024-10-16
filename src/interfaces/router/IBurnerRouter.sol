@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {IBurner} from "@symbioticfi/core/src/interfaces/slasher/IBurner.sol";
 
-interface IRouterBurner is IBurner {
+interface IBurnerRouter is IBurner {
     error AlreadySet();
     error DuplicateNetworkReceiver();
     error DuplicateOperatorNetworkReceiver();
