@@ -9,9 +9,8 @@ import {IFraxEtherRedemptionQueue} from "../../src/interfaces/burners/sfrxETH/IF
 import {IsfrxETH_Burner} from "../../src/interfaces/burners/sfrxETH/IsfrxETH_Burner.sol";
 import {IUintRequests} from "../../src/interfaces/common/IUintRequests.sol";
 
-import {IERC20} from "test/mocks/AaveV3Borrow.sol";
-
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract sfrxETH_BurnerTest is Test {
     address owner;

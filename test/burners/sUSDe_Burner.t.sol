@@ -12,9 +12,8 @@ import {IUSDe} from "../../src/interfaces/burners/sUSDe/IUSDe.sol";
 import {IEthenaMinting} from "../../src/interfaces/burners/sUSDe/IEthenaMinting.sol";
 import {IAddressRequests} from "../../src/interfaces/common/IAddressRequests.sol";
 
-import {IERC20} from "test/mocks/AaveV3Borrow.sol";
-
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract sUSDe_BurnerTest is Test {
     address owner;

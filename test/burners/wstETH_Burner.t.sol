@@ -10,22 +10,17 @@ import {IWstETH} from "../../src/interfaces/burners/wstETH/IWstETH.sol";
 import {IwstETH_Burner} from "../../src/interfaces/burners/wstETH/IwstETH_Burner.sol";
 import {IUintRequests} from "../../src/interfaces/common/IUintRequests.sol";
 
-import {AaveV3Borrow, IERC20, IWETH} from "test/mocks/AaveV3Borrow.sol";
-
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-
-address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract wstETH_BurnerTest is Test {
-    IWETH private weth = IWETH(WETH);
-
     address owner;
     address alice;
     uint256 alicePrivateKey;
     address bob;
     uint256 bobPrivateKey;
 
-    AaveV3Borrow private aave;
+    address private holder = 0x0B925eD163218f6662a35e0f0371Ac234f9E9371;
 
     wstETH_Burner burner;
 
@@ -44,13 +39,9 @@ contract wstETH_BurnerTest is Test {
         (alice, alicePrivateKey) = makeAddrAndKey("alice");
         (bob, bobPrivateKey) = makeAddrAndKey("bob");
 
-        aave = new AaveV3Borrow();
-        weth.approve(address(aave), type(uint256).max);
-
-        vm.deal(address(this), 500_000 ether);
-        weth.deposit{value: 500_000 ether}();
-        uint256 amountOut = 15_000 ether;
-        aave.supplyAndBorrow(WETH, 500_000 ether, COLLATERAL, amountOut);
+        vm.startPrank(holder);
+        IERC20(COLLATERAL).transfer(address(this), 15_000 ether);
+        vm.stopPrank();
     }
 
     function test_Create() public {
