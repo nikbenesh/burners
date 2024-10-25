@@ -1013,30 +1013,34 @@ contract BurnerRouterTest is Test {
         burnerRouter.onSlash(address(9876).subnetwork(111), address(98_765), 0, 0);
 
         assertEq(burnerRouter.balanceOf(address(3_456_776_543)), amount1);
+        assertEq(burnerRouter.lastBalance(), amount1);
 
         collateral.transfer(address(burnerRouter), amount2);
 
         burnerRouter.onSlash(address(9876).subnetwork(111), address(9876), 0, 0);
 
         assertEq(burnerRouter.balanceOf(address(2_345_665_432)), amount2);
+        assertEq(burnerRouter.lastBalance(), amount1 + amount2);
 
         collateral.transfer(address(burnerRouter), amount1);
 
         burnerRouter.onSlash(address(9876).subnetwork(111), address(98_765), 0, 0);
 
         assertEq(burnerRouter.balanceOf(address(3_456_776_543)), 2 * amount1);
+        assertEq(burnerRouter.lastBalance(), 2 * amount1 + amount2);
 
         collateral.transfer(address(burnerRouter), amount3);
 
         burnerRouter.onSlash(address(987).subnetwork(111), address(98_765), 0, 0);
 
         assertEq(burnerRouter.balanceOf(address(1_234_554_321)), amount3);
+        assertEq(burnerRouter.lastBalance(), 2 * amount1 + amount2 + amount3);
     }
 
-    function test_TriggerTransfer(
-        uint256 amount
-    ) external {
-        amount = bound(amount, 1, 1000 * 1e18);
+    function test_TriggerTransfer(uint256 amount1, uint256 amount2, uint256 amount3) external {
+        amount1 = bound(amount1, 1, 1000 * 1e18);
+        amount2 = bound(amount2, 1, 1000 * 1e18);
+        amount3 = bound(amount3, 1, 1000 * 1e18);
 
         uint256 blockTimestamp = block.timestamp * block.timestamp / block.timestamp * block.timestamp / block.timestamp;
         blockTimestamp = blockTimestamp + 1_720_700_948;
@@ -1069,13 +1073,53 @@ contract BurnerRouterTest is Test {
 
         (vault,,) = _getVaultWithDelegatorWithSlasher(address(burnerRouter));
 
-        collateral.transfer(address(burnerRouter), amount);
+        collateral.transfer(address(burnerRouter), amount1);
+
+        burnerRouter.onSlash(address(9876).subnetwork(111), address(98_765), 0, 0);
+        assertEq(burnerRouter.lastBalance(), amount1);
+
+        uint256 balanceBefore = collateral.balanceOf(address(3_456_776_543));
+        assertEq(burnerRouter.triggerTransfer(address(3_456_776_543)), amount1);
+        assertEq(collateral.balanceOf(address(3_456_776_543)) - balanceBefore, amount1);
+        assertEq(burnerRouter.balanceOf(address(3_456_776_543)), 0);
+        assertEq(burnerRouter.lastBalance(), 0);
+
+        collateral.transfer(address(burnerRouter), amount2);
 
         burnerRouter.onSlash(address(9876).subnetwork(111), address(98_765), 0, 0);
 
-        uint256 balanceBefore = collateral.balanceOf(address(3_456_776_543));
-        assertEq(burnerRouter.triggerTransfer(address(3_456_776_543)), amount);
-        assertEq(collateral.balanceOf(address(3_456_776_543)) - balanceBefore, amount);
+        balanceBefore = collateral.balanceOf(address(3_456_776_543));
+        assertEq(burnerRouter.triggerTransfer(address(3_456_776_543)), amount2);
+        assertEq(collateral.balanceOf(address(3_456_776_543)) - balanceBefore, amount2);
+        assertEq(burnerRouter.balanceOf(address(3_456_776_543)), 0);
+        assertEq(burnerRouter.lastBalance(), 0);
+
+        collateral.transfer(address(burnerRouter), amount1);
+
+        burnerRouter.onSlash(address(9876).subnetwork(111), address(98_765), 0, 0);
+        assertEq(burnerRouter.lastBalance(), amount1);
+
+        collateral.transfer(address(burnerRouter), amount2);
+
+        burnerRouter.onSlash(address(9876).subnetwork(111), address(9875), 0, 0);
+        assertEq(burnerRouter.lastBalance(), amount1 + amount2);
+
+        balanceBefore = collateral.balanceOf(address(2_345_665_432));
+        assertEq(burnerRouter.triggerTransfer(address(2_345_665_432)), amount2);
+        assertEq(collateral.balanceOf(address(2_345_665_432)) - balanceBefore, amount2);
+        assertEq(burnerRouter.balanceOf(address(2_345_665_432)), 0);
+        assertEq(burnerRouter.lastBalance(), amount1);
+
+        collateral.transfer(address(burnerRouter), amount3);
+
+        burnerRouter.onSlash(address(9876).subnetwork(111), address(9875), 0, 0);
+        assertEq(burnerRouter.lastBalance(), amount1 + amount3);
+
+        balanceBefore = collateral.balanceOf(address(2_345_665_432));
+        assertEq(burnerRouter.triggerTransfer(address(2_345_665_432)), amount3);
+        assertEq(collateral.balanceOf(address(2_345_665_432)) - balanceBefore, amount3);
+        assertEq(burnerRouter.balanceOf(address(2_345_665_432)), 0);
+        assertEq(burnerRouter.lastBalance(), amount1);
     }
 
     function test_TriggerTransferRevertInsufficientBalance(

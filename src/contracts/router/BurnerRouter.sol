@@ -79,9 +79,8 @@ contract BurnerRouter is OwnableUpgradeable, IBurnerRouter {
         uint256, /* amount */
         uint48 /* captureTimestamp */
     ) external {
-        address network = subnetwork.network();
         uint256 currentBalance = IERC20(collateral).balanceOf(address(this));
-        balanceOf[_getReceiver(network, operator)] += currentBalance - lastBalance;
+        balanceOf[_getReceiver(subnetwork.network(), operator)] += currentBalance - lastBalance;
         lastBalance = currentBalance;
     }
 
@@ -97,6 +96,7 @@ contract BurnerRouter is OwnableUpgradeable, IBurnerRouter {
             revert InsufficientBalance();
         }
 
+        lastBalance -= amount;
         balanceOf[receiver] = 0;
 
         IERC20(collateral).safeTransfer(receiver, amount);
