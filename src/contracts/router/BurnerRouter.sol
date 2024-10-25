@@ -186,6 +186,8 @@ contract BurnerRouter is OwnableUpgradeable, IBurnerRouter {
             pendingDelay.value = newDelay;
             pendingDelay.timestamp = Time.timestamp() + delay.value;
         }
+
+        emit SetDelay(newDelay);
     }
 
     /**
@@ -196,9 +198,7 @@ contract BurnerRouter is OwnableUpgradeable, IBurnerRouter {
             revert NotReady();
         }
 
-        delay.value = pendingDelay.value;
-        pendingDelay.value = 0;
-        pendingDelay.timestamp = 0;
+        _tryAcceptDelay();
     }
 
     function initialize(
@@ -304,6 +304,8 @@ contract BurnerRouter is OwnableUpgradeable, IBurnerRouter {
             delay.value = pendingDelay.value;
             pendingDelay.value = 0;
             pendingDelay.timestamp = 0;
+
+            emit AcceptDelay();
         }
     }
 }
