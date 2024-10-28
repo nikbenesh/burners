@@ -10,15 +10,10 @@ import {IStaderConfig} from "../../src/interfaces/burners/ETHx/IStaderConfig.sol
 import {IStaderStakePoolsManager} from "../../src/interfaces/burners/ETHx/IStaderStakePoolsManager.sol";
 import {IUserWithdrawalManager} from "../../src/interfaces/burners/ETHx/IUserWithdrawalManager.sol";
 
-import {IERC20, IWETH} from "test/mocks/AaveV3Borrow.sol";
-
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-
-address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract ETHx_BurnerTest is Test {
-    IWETH private weth = IWETH(WETH);
-
     address owner;
     address alice;
     uint256 alicePrivateKey;

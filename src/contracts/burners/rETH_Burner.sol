@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {SelfDestruct} from "../SelfDestruct.sol";
+import {SelfDestruct} from "../common/SelfDestruct.sol";
 
 import {IRocketTokenRETH} from "../../interfaces/burners/rETH/IRocketTokenRETH.sol";
 import {IrETH_Burner} from "../../interfaces/burners/rETH/IrETH_Burner.sol";

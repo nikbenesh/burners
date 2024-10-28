@@ -8,22 +8,15 @@ import {rETH_Burner} from "../../src/contracts/burners/rETH_Burner.sol";
 import {IrETH_Burner} from "../../src/interfaces/burners/rETH/IrETH_Burner.sol";
 import {IRocketTokenRETH} from "../../src/interfaces/burners/rETH/IRocketTokenRETH.sol";
 
-import {AaveV3Borrow, IERC20, IWETH} from "test/mocks/AaveV3Borrow.sol";
-
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-
-address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract rETH_BurnerTest is Test {
-    IWETH private weth = IWETH(WETH);
-
     address owner;
     address alice;
     uint256 alicePrivateKey;
     address bob;
     uint256 bobPrivateKey;
-
-    AaveV3Borrow private aave;
 
     rETH_Burner burner;
 
@@ -38,14 +31,6 @@ contract rETH_BurnerTest is Test {
         owner = address(this);
         (alice, alicePrivateKey) = makeAddrAndKey("alice");
         (bob, bobPrivateKey) = makeAddrAndKey("bob");
-
-        aave = new AaveV3Borrow();
-        weth.approve(address(aave), type(uint256).max);
-
-        vm.deal(address(this), 1_000_000 ether);
-        weth.deposit{value: 500_000 ether}();
-        uint256 amountOut = 15_000 ether;
-        aave.supplyAndBorrow(WETH, 500_000 ether, COLLATERAL, amountOut);
 
         vm.startPrank(ROCKET_DEPOSIT_POOL);
         IRocketTokenRETH(COLLATERAL).mint(150_000 ether, address(this));

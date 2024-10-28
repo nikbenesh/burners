@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.25;
+pragma solidity ^0.8.0;
 
-import {IAddressRequests} from "../../IAddressRequests.sol";
+import {IAddressRequests} from "../../common/IAddressRequests.sol";
 
 interface IsUSDe_Burner is IAddressRequests {
     error HasCooldown();

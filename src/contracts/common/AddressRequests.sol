@@ -1,31 +1,31 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {IUintRequests} from "../interfaces/IUintRequests.sol";
+import {IAddressRequests} from "../../interfaces/common/IAddressRequests.sol";
 
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
-contract UintRequests is IUintRequests {
+contract AddressRequests is IAddressRequests {
     using Math for uint256;
-    using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableSet for EnumerableSet.AddressSet;
 
-    EnumerableSet.UintSet internal _requestIds;
+    EnumerableSet.AddressSet private _requestIds;
 
     /**
-     * @inheritdoc IUintRequests
+     * @inheritdoc IAddressRequests
      */
     function requestIdsLength() external view returns (uint256) {
         return _requestIds.length();
     }
 
     /**
-     * @inheritdoc IUintRequests
+     * @inheritdoc IAddressRequests
      */
-    function requestIds(uint256 index, uint256 maxRequestIds) external view returns (uint256[] memory requestIds_) {
+    function requestIds(uint256 index, uint256 maxRequestIds) external view returns (address[] memory requestIds_) {
         uint256 length = Math.min(index + maxRequestIds, _requestIds.length()) - index;
 
-        requestIds_ = new uint256[](length);
+        requestIds_ = new address[](length);
         for (uint256 i; i < length;) {
             requestIds_[i] = _requestIds.at(index);
             unchecked {
@@ -36,13 +36,13 @@ contract UintRequests is IUintRequests {
     }
 
     function _addRequestId(
-        uint256 requestId
+        address requestId
     ) internal {
         _requestIds.add(requestId);
     }
 
     function _removeRequestId(
-        uint256 requestId
+        address requestId
     ) internal {
         if (!_requestIds.remove(requestId)) {
             revert InvalidRequestId();

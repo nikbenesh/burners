@@ -1,4 +1,4 @@
-## Burner
+## Burners
 
 ## General Overview
 
@@ -7,6 +7,28 @@ Collateral is a concept introduced by Symbiotic that brings capital efficiency a
 Symbiotic achieves this by separating the ability to slash assets from the underlying asset itself, similar to how liquid staking tokens create tokenized representations of underlying staked positions. Technically, collateral positions in Symbiotic are ERC-20 tokens with extended functionality to handle slashing incidents if applicable. In other words, if the collateral token aims to support slashing, it should be possible to create a `Burner` responsible for proper burning of the asset.
 
 For example, if asset is ETH LST it can be used as a collateral if it's possible to create `Burner` contract that withdraw ETH from beaconchain and burn it, if asset is native e.g. governance token it also can be used as collateral since burner might be implemented as "black-hole" contract or address.
+
+## Burner Router
+
+[See the code here](../src/contracts/router/)
+
+The Burner Router allows redirecting the slashed collateral tokens to different addresses, which may be represented by Burners, Treasury contracts, LP lockers, etc.
+
+### Full Flow
+
+1. Setup
+
+   - Before the Vault's creation, deploy a new Burner Router via `BurnerRouterFactory` with the same collateral address as the Vault will use
+   - Deploy the Vault inputting the received `BurnerRouter` address and `IBaseSlasher.BaseParams.isBurnerHook` set to `true`
+
+2. Slashing
+
+   - The router is called via `onSlash()` function
+   - It determines the needed address for redirection and saves the redirection amount for it
+
+3. Trigger transfer
+
+   - Transfers a given account's whole balance from the router to this account
 
 ## Default Burners
 

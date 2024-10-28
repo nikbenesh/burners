@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {SelfDestruct} from "../SelfDestruct.sol";
-import {UintRequests} from "../UintRequests.sol";
+import {SelfDestruct} from "../common/SelfDestruct.sol";
+import {UintRequests} from "../common/UintRequests.sol";
 
 import {IFraxEtherRedemptionQueue} from "../../interfaces/burners/sfrxETH/IFraxEtherRedemptionQueue.sol";
 import {IsfrxETH_Burner} from "../../interfaces/burners/sfrxETH/IsfrxETH_Burner.sol";

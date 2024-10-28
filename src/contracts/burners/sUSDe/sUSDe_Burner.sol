@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {AddressRequests} from "../../AddressRequests.sol";
-import {SelfDestruct} from "../../SelfDestruct.sol";
+import {AddressRequests} from "../../common/AddressRequests.sol";
+import {SelfDestruct} from "../../common/SelfDestruct.sol";
 import {sUSDe_Miniburner} from "./sUSDe_Miniburner.sol";
 
 import {IEthenaMinting} from "../../../interfaces/burners/sUSDe/IEthenaMinting.sol";

@@ -8,17 +8,12 @@ import {swETH_Burner} from "../../src/contracts/burners/swETH_Burner.sol";
 import {ISwEXIT} from "../../src/interfaces/burners/swETH/ISwEXIT.sol";
 import {ISwETH} from "../../src/interfaces/burners/swETH/ISwETH.sol";
 import {IswETH_Burner} from "../../src/interfaces/burners/swETH/IswETH_Burner.sol";
-import {IUintRequests} from "../../src/interfaces/IUintRequests.sol";
-
-import {IERC20, IWETH} from "test/mocks/AaveV3Borrow.sol";
+import {IUintRequests} from "../../src/interfaces/common/IUintRequests.sol";
 
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-
-address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract swETH_BurnerTest is Test {
-    IWETH private weth = IWETH(WETH);
-
     address owner;
     address alice;
     uint256 alicePrivateKey;

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {SelfDestruct} from "../SelfDestruct.sol";
-import {UintRequests} from "../UintRequests.sol";
+import {SelfDestruct} from "../common/SelfDestruct.sol";
+import {UintRequests} from "../common/UintRequests.sol";
 
 import {IETHx_Burner} from "../../interfaces/burners/ETHx/IETHx_Burner.sol";
 import {IStaderConfig} from "../../interfaces/burners/ETHx/IStaderConfig.sol";
