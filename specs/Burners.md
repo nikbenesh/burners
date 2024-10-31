@@ -8,28 +8,6 @@ Symbiotic achieves this by separating the ability to slash assets from the under
 
 For example, if asset is ETH LST it can be used as a collateral if it's possible to create `Burner` contract that withdraw ETH from beaconchain and burn it, if asset is native e.g. governance token it also can be used as collateral since burner might be implemented as "black-hole" contract or address.
 
-## Burner Router
-
-[See the code here](../src/contracts/router/)
-
-The Burner Router allows redirecting the slashed collateral tokens to different addresses, which may be represented by Burners, Treasury contracts, LP lockers, etc.
-
-### Full Flow
-
-1. Setup
-
-   - Before the Vault's creation, deploy a new Burner Router via `BurnerRouterFactory` with the same collateral address as the Vault will use
-   - Deploy the Vault inputting the received `BurnerRouter` address and `IBaseSlasher.BaseParams.isBurnerHook` set to `true`
-
-2. Slashing
-
-   - The router is called via `onSlash()` function
-   - It determines the needed address for redirection and saves the redirection amount for it
-
-3. Trigger transfer
-
-   - Transfers a given account's whole balance from the router to this account
-
 ## Default Burners
 
 We've implemented default Burners for the assets restaked at Symbiotic, which need "unwrapping" (and allow it in a permissionless way):
@@ -51,6 +29,14 @@ An asset transfered to the [Burner](../src/contracts/burners/wstETH_Burner.sol) 
    - Claim withdrawal request by its ID
    - Burn ETH by `selfdestruct()`
 
+#### Deploy entity
+
+Deployment script: [click](../script/deploy/wstETH_Burner.s.sol)
+
+```shell
+forge script script/deploy/wstETH_Burner.s.sol:wstETH_BurnerScript --broadcast --rpc-url=$ETH_RPC_URL
+```
+
 ### rETH Burner
 
 An asset transfered to the [Burner](../src/contracts/burners/rETH_Burner.sol) - rETH
@@ -61,6 +47,14 @@ An asset transfered to the [Burner](../src/contracts/burners/rETH_Burner.sol) - 
 
    - Unwrap rETH into ETH via rETH contract
    - Burn ETH by `selfdestruct()`
+
+#### Deploy entity
+
+Deployment script: [click](../script/deploy/rETH_Burner.s.sol)
+
+```shell
+forge script script/deploy/rETH_Burner.s.sol:rETH_BurnerScript --broadcast --rpc-url=$ETH_RPC_URL
+```
 
 ### mETH Burner
 
@@ -76,6 +70,14 @@ An asset transfered to the [Burner](../src/contracts/burners/mETH_Burner.sol) - 
 
    - Claim withdrawal request by its ID
    - Burn ETH by `selfdestruct()`
+
+#### Deploy entity
+
+Deployment script: [click](../script/deploy/mETH_Burner.s.sol)
+
+```shell
+forge script script/deploy/mETH_Burner.s.sol:mETH_BurnerScript --broadcast --rpc-url=$ETH_RPC_URL
+```
 
 ### swETH Burner
 
@@ -93,6 +95,14 @@ An asset transfered to the [Burner](../src/contracts/burners/swETH_Burner.sol) -
    - Claim withdrawal request by its ID
    - Burn ETH by `selfdestruct()`
 
+#### Deploy entity
+
+Deployment script: [click](../script/deploy/swETH_Burner.s.sol)
+
+```shell
+forge script script/deploy/swETH_Burner.s.sol:swETH_BurnerScript --broadcast --rpc-url=$ETH_RPC_URL
+```
+
 ### sfrxETH Burner
 
 An asset transfered to the [Burner](../src/contracts/burners/sfrxETH_Burner.sol) - sfrxETH
@@ -107,6 +117,14 @@ An asset transfered to the [Burner](../src/contracts/burners/sfrxETH_Burner.sol)
 
    - Claim withdrawal request by its ID
    - Burn ETH by `selfdestruct()`
+
+#### Deploy entity
+
+Deployment script: [click](../script/deploy/sfrxETH_Burner.s.sol)
+
+```shell
+forge script script/deploy/sfrxETH_Burner.s.sol:sfrxETH_BurnerScript --broadcast --rpc-url=$ETH_RPC_URL
+```
 
 ### ETHx Burner
 
@@ -123,3 +141,11 @@ An asset transfered to the [Burner](../src/contracts/burners/ETHx_Burner.sol) - 
 
    - Claim withdrawal request by its ID
    - Burn ETH by `selfdestruct()`
+
+#### Deploy entity
+
+Deployment script: [click](../script/deploy/ETHx_Burner.s.sol)
+
+```shell
+forge script script/deploy/ETHx_Burner.s.sol:ETHx_BurnerScript --broadcast --rpc-url=$ETH_RPC_URL
+```
