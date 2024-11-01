@@ -70,6 +70,10 @@ contract BurnerRouter is OwnableUpgradeable, IBurnerRouter {
      */
     mapping(address receiver => uint256 amount) public balanceOf;
 
+    constructor() {
+        _disableInitializers();
+    }
+
     /**
      * @inheritdoc IBurner
      */
