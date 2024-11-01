@@ -172,7 +172,7 @@ contract BurnerRouter is OwnableUpgradeable, IBurnerRouter {
      */
     function setDelay(
         uint48 newDelay
-    ) external {
+    ) external onlyOwner {
         _tryAcceptDelay();
 
         if (pendingDelay.timestamp != 0) {
