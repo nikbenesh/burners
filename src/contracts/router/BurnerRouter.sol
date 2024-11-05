@@ -70,6 +70,10 @@ contract BurnerRouter is OwnableUpgradeable, IBurnerRouter {
      */
     mapping(address receiver => uint256 amount) public balanceOf;
 
+    constructor() {
+        _disableInitializers();
+    }
+
     /**
      * @inheritdoc IBurner
      */
@@ -172,7 +176,7 @@ contract BurnerRouter is OwnableUpgradeable, IBurnerRouter {
      */
     function setDelay(
         uint48 newDelay
-    ) external {
+    ) external onlyOwner {
         _tryAcceptDelay();
 
         if (pendingDelay.timestamp != 0) {

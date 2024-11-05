@@ -11,12 +11,17 @@ The Burner Router allows redirecting the slashed collateral tokens to different 
    - Before the Vault's creation, deploy a new Burner Router via `BurnerRouterFactory` with the same collateral address as the Vault will use
    - Deploy the Vault inputting the received `BurnerRouter` address and `IBaseSlasher.BaseParams.isBurnerHook` set to `true`
 
-2. Slashing
+2. Update setup
+
+   - Change global receiver, network-specific receivers, operator-network-specific receivers with the configured delay (in case of pending set requests, they are overrided with the new ones)
+   - Change `delay` itself after the delay (in case of pending set requests, they are overrided with the new ones)
+
+3. Slashing
 
    - The router is called via `onSlash()` function
    - It determines the needed address for redirection and saves the redirection amount for it
 
-3. Trigger transfer
+4. Trigger transfer
 
    - Transfers a given account's whole balance from the router to this account
 
