@@ -3,7 +3,9 @@ pragma solidity ^0.8.0;
 
 import {IBurnerRouter} from "./IBurnerRouter.sol";
 
-interface IBurnerRouterFactory {
+import {IRegistry} from "@symbioticfi/core/src/interfaces/common/IRegistry.sol";
+
+interface IBurnerRouterFactory is IRegistry {
     /**
      * @notice Create a burner router contract.
      * @param params initial parameters needed for a burner router contract deployment
