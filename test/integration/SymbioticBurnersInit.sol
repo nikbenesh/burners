@@ -32,7 +32,7 @@ contract SymbioticBurnersInit is SymbioticCoreInit, SymbioticBurnersBindings {
     ISymbioticBurnerRouterFactory public symbioticBurnerRouterFactory;
 
     function setUp() public virtual override {
-        super.setUp();
+        SymbioticCoreInit.setUp();
 
         if (SYMBIOTIC_BURNERS_NEED_BURNERS) {
             _initBurners_SymbioticBurners(SYMBIOTIC_BURNERS_USE_EXISTING_DEPLOYMENT);
