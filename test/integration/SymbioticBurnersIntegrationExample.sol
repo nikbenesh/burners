@@ -39,13 +39,11 @@ contract SymbioticBurnersIntegrationExample is SymbioticBurnersIntegration {
         uint96 identifier = 0;
         address collateral = tokens_SymbioticCore[0];
         bytes32 subnetwork = network.addr.subnetwork(identifier);
-        address rewardsToken = tokens_SymbioticCore[0];
         address networkTreasury = address(123_321);
 
         console2.log("Network:", network.addr);
         console2.log("Identifier:", identifier);
         console2.log("Collateral:", collateral);
-        console2.log("Rewards Token:", rewardsToken);
         console2.log("Network Treasury:", networkTreasury);
 
         for (uint256 i; i < vaults_SymbioticCore.length; ++i) {
