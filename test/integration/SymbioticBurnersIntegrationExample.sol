@@ -155,15 +155,15 @@ contract SymbioticBurnersIntegrationExample is SymbioticBurnersIntegration {
                 console2.log("Burner Router:", burner);
 
                 address receiver = ISymbioticBurnerRouter(burner).networkReceiver(network.addr);
-                uint256 balanceBefore = ISymbioticBurnerRouter(collateral).balanceOf(receiver);
+                uint256 balanceBefore = IERC20(collateral).balanceOf(receiver);
                 if (ISymbioticBurnerRouter(burner).balanceOf(receiver) > 0) {
                     _anyoneTriggerTransfer_SymbioticBurners(address(this), burner, receiver);
                 }
-                uint256 balanceAfter = ISymbioticBurnerRouter(collateral).balanceOf(receiver);
+                uint256 balanceAfter = IERC20(collateral).balanceOf(receiver);
                 console2.log("Collateral received by:", receiver, "-", balanceAfter - balanceBefore);
             } else {
                 console2.log("Burner:", burner);
-                console2.log("Burner's balance:", ISymbioticBurnerRouter(collateral).balanceOf(burner));
+                console2.log("Burner's balance:", IERC20(collateral).balanceOf(burner));
             }
         }
     }
